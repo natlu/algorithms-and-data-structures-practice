@@ -1,5 +1,6 @@
 /*
 princeton assignment
+2d tree
 */
 
 import edu.princeton.cs.algs4.Point2D;
