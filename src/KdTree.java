@@ -47,6 +47,35 @@ public class KdTree {
         return count;
     }
 
+    // create a new rectangle
+    private RectHV genRect(Point2D p, Node prevNode) {
+        int i = prevNode.depth % DIM;
+        double comparePrevVal = compare(p, prevNode);
+        if (i == 1) { // prevNode is an x-axis split
+            double ymin = prevNode.rect.ymin();
+            double ymax = prevNode.rect.ymax();
+            if (comparePrevVal < 0)
+                return new RectHV(prevNode.rect.xmin(), ymin, prevNode.p.x(), ymax);
+            else
+                return new RectHV(prevNode.p.x(), ymin, prevNode.rect.xmax(), ymax);
+        } else {
+            double xmin = prevNode.rect.xmin();
+            double xmax = prevNode.rect.xmax();
+            if (comparePrevVal < 0)
+                return new RectHV(xmin, prevNode.rect.ymin(), xmax, prevNode.p.y());
+            else
+                return new RectHV(xmin, prevNode.p.y(), xmax, prevNode.rect.ymax());
+        }
+    }
+
+    // compare point relative to a node
+    // negative means point is less than the node
+    private double compare(Point2D p, Node node) {
+        int i = node.depth % DIM;
+        if (i == 1) return p.x() - node.p.x();
+        else return p.y() - node.p.y();
+    }
+
     // add the point to the set (if it is not already in the set)
     public void insert(Point2D p) {
         if (p == null) throw new IllegalArgumentException("null is an invalid Point2D");
@@ -67,45 +96,6 @@ public class KdTree {
         else node.right = insert(node.right, node, p);
 
         return node;
-    }
-
-    // create a new rectangle
-    private RectHV genRect(Point2D p, Node prevNode) {
-        int i = prevNode.depth % DIM;
-        double comparePrevVal = compare(p, prevNode);
-        if (i == 1) { // prevNode is an x-axis split
-            double ymin = prevNode.rect.ymin();
-            double ymax = prevNode.rect.ymax();
-            if (comparePrevVal < 0)
-                return new RectHV(prevNode.rect.xmin(), ymin, prevNode.p.x(), ymax);
-            else
-                return new RectHV(prevNode.p.x(), ymin, prevNode.rect.xmax(), ymax);
-        }
-        else {
-            double xmin = prevNode.rect.xmin();
-            double xmax = prevNode.rect.xmax();
-            if (comparePrevVal < 0)
-                return new RectHV(xmin, prevNode.rect.ymin(), xmax, prevNode.p.y());
-            else
-                return new RectHV(xmin, prevNode.p.y(), xmax, prevNode.rect.ymax());
-        }
-    }
-
-    // compare point relative to a node
-    // negative means point is less than the node
-    private double compare(Point2D p, Node node) {
-        int i = node.depth % DIM;
-        if (i == 1) return p.x() - node.p.x();
-        else return p.y() - node.p.y();
-    }
-
-    // returns either the x or y value depending on depth
-    private double pointValue(Point2D p, int depth) {
-        int i = depth % DIM;
-        // used to interact with algs4 Point2D
-        // gets x or y coord
-        if (i == 0) return p.x();
-        else return p.y(); // (i == 1)
     }
 
     public boolean contains(Point2D p) {
@@ -137,8 +127,7 @@ public class KdTree {
             StdDraw.setPenRadius();
             RectHV linex = new RectHV(node.p.x(), node.rect.ymin(), node.p.x(), node.rect.ymax());
             linex.draw();
-        }
-        else {
+        } else {
             StdDraw.setPenColor(StdDraw.BLUE);
             StdDraw.setPenRadius();
             RectHV liney = new RectHV(node.rect.xmin(), node.p.y(), node.rect.xmax(), node.p.y());
@@ -184,8 +173,7 @@ public class KdTree {
         if (compVal < 0) {
             firstNode = node.left;
             secondNode = node.right;
-        }
-        else {
+        } else {
             firstNode = node.right;
             secondNode = node.left;
         }
