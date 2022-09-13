@@ -5,12 +5,101 @@ import edu.princeton.cs.algs4.Queue;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class WordNet {
 
+    private Digraph digraph;
+    private Digraph reverseDigraph;
+    private boolean[] marked;
+    private boolean[] onStack;
 
-    // // constructor takes the name of the two input files
-    // public WordNet(String synsets, String hypernyms)
+    private Set<Integer> vertices = new HashSet<>();
+
+    // constructor takes the name of the two input files
+    public WordNet(String synsets, String hypernyms) {
+        Queue<ArrayList<Integer>> inputQueue = readHypernyms(new File(hypernyms));
+        buildDigraphs(inputQueue);
+
+        marked = new boolean[digraph.V()];
+        onStack = new boolean[digraph.V()];
+
+        dfs(reverseDigraph, getRootVertex());
+
+
+    }
+
+    private Queue<ArrayList<Integer>> readHypernyms(File file) {
+        // File foo = new File("./hypernyms.txt");
+        In input = new In(file);
+
+        Queue<ArrayList<Integer>> queue = new Queue<>();
+        while (input.hasNextLine()) {
+            String line = input.readLine();
+            if (line.isBlank()) {
+                break;
+            }
+            String[] fields = line.split(",");
+            Integer from_v = Integer.parseInt(fields[0]);
+            vertices.add(from_v);
+            int n = fields.length;
+            for (int i = 1; i < n; i++) {
+                int to_v = Integer.parseInt(fields[i]);
+                vertices.add(to_v);
+                queue.enqueue(new ArrayList<Integer>(Arrays.asList(from_v, to_v)));
+            }
+        }
+        return queue;
+    }
+
+    private void buildDigraphs(Queue<ArrayList<Integer>> queue) {
+        // build the digraph as well as the reverse digraph to save a loop from
+        // running the reverse method
+        digraph = new Digraph(vertices.size());
+        reverseDigraph = new Digraph(vertices.size());
+        while (!queue.isEmpty()) {
+            ArrayList<Integer> bar = queue.dequeue();
+            digraph.addEdge(bar.get(0), bar.get(1));
+            reverseDigraph.addEdge(bar.get(1), bar.get(0));
+        }
+    }
+
+    private int getRootVertex() {
+        // try find the root vertex
+        // it will be the one with no indegree in the reversed digraph
+        Integer rootVertex = null;
+        System.out.println(reverseDigraph.V());
+        for (int v = 0; v < reverseDigraph.V(); v++) {
+            // System.out.println(v);
+            if (reverseDigraph.indegree(v) == 0) {
+                if (rootVertex != null) {
+                    throw new IllegalArgumentException("not all nodes lead to root 1");
+                }
+                rootVertex = v;
+            }
+        }
+
+        if (rootVertex == null) {
+            throw new IllegalArgumentException("not all nodes lead to root 2");
+        }
+        return rootVertex;
+    }
+
+    private void dfs(Digraph dg, int v) {
+        marked[v] = true;
+        onStack[v] = true;
+        for (int w : dg.adj(v)) {
+            if (!marked[w]) {
+                dfs(dg, w);
+            }
+            else if (onStack[w]) {
+                throw new IllegalArgumentException("Graph not acyclic");
+            }
+        }
+        onStack[v] = false;
+    }
+
     //
     // // returns all WordNet nouns
     // public Iterable<String> nouns()
@@ -28,72 +117,26 @@ public class WordNet {
     // do unit testing of this class
     public static void main(String[] args) {
 
-        // File foo = new File("./hypernyms-small.txt");
-        File foo = new File("./hypernyms.txt");
-
-        In b = new In(foo);
-        // System.out.println(b.toString());
-        // String bb = b.readLine();
-        // System.out.println(bb);
-
         // vertices always monotonically increasing from 0?
         // if not then could fail as Digraph needs the vertex index to be <=
         // the input V
         // will assume its fine so won't do any further processing
 
-        Queue<ArrayList<Integer>> myQueue = new Queue<>();
-        while (b.hasNextLine()) {
-            String line = b.readLine();
-            if (line.isBlank()) {
-                break;
-            }
-            String[] fields = line.split(",");
-            Integer from_v = Integer.parseInt(fields[0]);
-            int n = fields.length;
-            for (int i = 1; i < n; i++) {
-                myQueue.enqueue(new ArrayList<Integer>(
-                        Arrays.asList(from_v, Integer.parseInt(fields[i]))
-                ));
-            }
-        }
 
-        System.out.println(myQueue.size());
+        System.out.println("hypernyms-verysmall");
+        new WordNet("blah", "./hypernyms-verysmall.txt");
 
-        Digraph myGraph = new Digraph(myQueue.size());
+        // System.out.println("hypernyms");
+        // new WordNet("blah", "./hypernyms.txt");
 
-        while (!myQueue.isEmpty()) {
-            ArrayList<Integer> bar = myQueue.dequeue();
-            myGraph.addEdge(bar.get(0), bar.get(1));
-        }
+        System.out.println("hypernyms3InvalidCycle");
+        new WordNet("blah", "./hypernyms3InvalidCycle.txt");
 
-        // System.out.println(myGraph.toString());
+        System.out.println("hypernyms3InvalidTwoRoots");
+        new WordNet("blah", "./hypernyms3InvalidTwoRoots.txt");
 
-
-        // Bag<Integer>[] a = (Bag<Integer>[]) new Bag[5];
-        // for (int v = 0; v < 5; v++) {
-        //     a[v] = new Bag<Integer>();
-        // }
-        //
-        // a[0].add(1);
-        // a[0].add(2);
-        // a[1].add(3);
-        // a[1].add(4);
-        //
-        // System.out.printf(a.toString());
-        //
-        // System.out.printf("\n--------------\n");
-        //
-        // System.out.printf(a[0].toString());
-        //
-        // Iterator<Integer> ai = a[0].iterator();
-        //
-        // System.out.println("\n");
-        //
-        // while (ai.hasNext()) {
-        //     System.out.printf(ai.next().toString());
-        //     System.out.println("\n");
-        // }
-
+        System.out.println("hypernyms3InvalidCycle+Path");
+        new WordNet("blah", "./hypernyms3InvalidCycle+Path.txt");
     }
 
 }
