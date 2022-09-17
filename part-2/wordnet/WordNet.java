@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class WordNet {
@@ -15,12 +16,19 @@ public class WordNet {
     private boolean[] marked;
     private boolean[] onStack;
 
+    List<String[]> synset;
+
     private Set<Integer> vertices = new HashSet<>();
+
+    public List<String[]> getSynset() {
+        return synset;
+    }
 
     // constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
         Queue<ArrayList<Integer>> inputQueue = readHypernyms(new File(hypernyms));
         buildDigraphs(inputQueue);
+        readSynsets(new File(synsets));
 
         marked = new boolean[digraph.V()];
         onStack = new boolean[digraph.V()];
@@ -28,6 +36,22 @@ public class WordNet {
         dfs(reverseDigraph, getRootVertex());
 
 
+    }
+
+    private void readSynsets(File file) {
+        In input = new In(file);
+        synset = new ArrayList<>();
+        while (input.hasNextLine()) {
+            String line = input.readLine();
+            if (line.isBlank()) {
+                break;
+            }
+            String[] fields = line.split(",");
+            int id = Integer.parseInt(fields[0]);
+            String[] nouns = fields[1].split(" ");
+            // String description = fields[2];
+            synset.add(id, nouns);
+        }
     }
 
     private Queue<ArrayList<Integer>> readHypernyms(File file) {
@@ -66,23 +90,19 @@ public class WordNet {
     }
 
     private int getRootVertex() {
-        // try find the root vertex
-        // it will be the one with no indegree in the reversed digraph
         Integer rootVertex = null;
-        System.out.println(reverseDigraph.V());
         for (int v = 0; v < reverseDigraph.V(); v++) {
-            // System.out.println(v);
             if (reverseDigraph.indegree(v) == 0) {
                 if (rootVertex != null) {
-                    throw new IllegalArgumentException("not all nodes lead to root 1");
+                    throw new IllegalArgumentException("multiple root vertices found");
                 }
                 rootVertex = v;
             }
         }
-
         if (rootVertex == null) {
-            throw new IllegalArgumentException("not all nodes lead to root 2");
+            throw new IllegalArgumentException("no root vertex found");
         }
+        // System.out.println("root is: " + rootVertex);
         return rootVertex;
     }
 
@@ -124,13 +144,17 @@ public class WordNet {
 
 
         System.out.println("hypernyms-verysmall");
-        new WordNet("blah", "./hypernyms-verysmall.txt");
+        WordNet foo = new WordNet("./synsets3.txt", "./hypernyms-verysmall.txt");
+        System.out.println(Arrays.toString(foo.getSynset().get(0)));
+        System.out.println(Arrays.toString(foo.getSynset().get(1)));
+        System.out.println(Arrays.toString(foo.getSynset().get(2)));
+
 
         // System.out.println("hypernyms");
         // new WordNet("blah", "./hypernyms.txt");
 
-        System.out.println("hypernyms3InvalidCycle");
-        new WordNet("blah", "./hypernyms3InvalidCycle.txt");
+        // System.out.println("hypernyms3InvalidCycle");
+        // new WordNet("blah", "./hypernyms3InvalidCycle.txt");
 
         System.out.println("hypernyms3InvalidTwoRoots");
         new WordNet("blah", "./hypernyms3InvalidTwoRoots.txt");
