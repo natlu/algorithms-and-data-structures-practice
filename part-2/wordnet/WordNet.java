@@ -33,8 +33,6 @@ public class WordNet {
         onStack = new boolean[digraph.V()];
 
         dfs(reverseDigraph, getRootVertex());
-
-
     }
 
     private void readSynsets(String file) {
@@ -119,10 +117,16 @@ public class WordNet {
         onStack[v] = false;
     }
 
-    //
-    // // returns all WordNet nouns
-    // public Iterable<String> nouns()
-    //
+
+    // returns all WordNet nouns
+    public Iterable<String> nouns() {
+        List<String> nouns = new ArrayList<String>();
+        for (String[] n : synset) {
+            nouns.addAll(Arrays.asList(n));
+        }
+        return nouns;
+    }
+
     // // is the word a WordNet noun?
     // public boolean isNoun(String word)
     //
@@ -147,6 +151,10 @@ public class WordNet {
         System.out.println(Arrays.toString(foo.getSynset().get(0)));
         System.out.println(Arrays.toString(foo.getSynset().get(1)));
         System.out.println(Arrays.toString(foo.getSynset().get(2)));
+
+        // for (String s : foo.nouns()) {
+        //     System.out.println(s);
+        // }
 
 
         // System.out.println("hypernyms");
