@@ -2,7 +2,6 @@ import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,9 +25,9 @@ public class WordNet {
 
     // constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
-        Queue<ArrayList<Integer>> inputQueue = readHypernyms(new File(hypernyms));
+        Queue<ArrayList<Integer>> inputQueue = readHypernyms(hypernyms);
         buildDigraphs(inputQueue);
-        readSynsets(new File(synsets));
+        readSynsets(synsets);
 
         marked = new boolean[digraph.V()];
         onStack = new boolean[digraph.V()];
@@ -38,7 +37,7 @@ public class WordNet {
 
     }
 
-    private void readSynsets(File file) {
+    private void readSynsets(String file) {
         In input = new In(file);
         synset = new ArrayList<>();
         while (input.hasNextLine()) {
@@ -54,7 +53,7 @@ public class WordNet {
         }
     }
 
-    private Queue<ArrayList<Integer>> readHypernyms(File file) {
+    private Queue<ArrayList<Integer>> readHypernyms(String file) {
         // File foo = new File("./hypernyms.txt");
         In input = new In(file);
 
