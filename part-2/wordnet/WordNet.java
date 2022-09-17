@@ -127,9 +127,16 @@ public class WordNet {
         return nouns;
     }
 
-    // // is the word a WordNet noun?
-    // public boolean isNoun(String word)
-    //
+    // is the word a WordNet noun?
+    public boolean isNoun(String word) {
+        for (String n : nouns()) {
+            if (word.equals(n)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // // distance between nounA and nounB (defined below)
     // public int distance(String nounA, String nounB)
     //
@@ -155,6 +162,10 @@ public class WordNet {
         // for (String s : foo.nouns()) {
         //     System.out.println(s);
         // }
+
+        System.out.println(foo.isNoun("a"));
+        System.out.println(foo.isNoun("A"));
+        System.out.println(foo.isNoun("foo"));
 
 
         // System.out.println("hypernyms");
