@@ -119,6 +119,7 @@ public class WordNet {
 
 
     // returns all WordNet nouns
+    // TODO: store nouns in HashSet to satisfy speed constraints for isNoun
     public Iterable<String> nouns() {
         List<String> nouns = new ArrayList<String>();
         for (String[] n : synset) {
@@ -144,7 +145,6 @@ public class WordNet {
     // // in a shortest ancestral path (defined below)
     // public String sap(String nounA, String nounB)
 
-    // do unit testing of this class
     public static void main(String[] args) {
 
         // vertices always monotonically increasing from 0?
@@ -174,11 +174,12 @@ public class WordNet {
         // System.out.println("hypernyms3InvalidCycle");
         // new WordNet("blah", "./hypernyms3InvalidCycle.txt");
 
-        System.out.println("hypernyms3InvalidTwoRoots");
-        new WordNet("blah", "./hypernyms3InvalidTwoRoots.txt");
+        // System.out.println("hypernyms3InvalidTwoRoots");
+        // new WordNet("blah", "./hypernyms3InvalidTwoRoots.txt");
 
-        System.out.println("hypernyms3InvalidCycle+Path");
-        new WordNet("blah", "./hypernyms3InvalidCycle+Path.txt");
+        // System.out.println("hypernyms3InvalidCycle+Path");
+        // new WordNet("blah", "./hypernyms3InvalidCycle+Path.txt");
+
     }
 
 }
