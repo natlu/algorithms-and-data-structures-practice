@@ -178,7 +178,10 @@ public class SAP {
     }
 
     // // a common ancestor that participates in shortest ancestral path; -1 if no such path
-    // public int ancestor(Iterable<Integer> v, Iterable<Integer> w)
+    public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
+        calc(v, w);
+        return queryCache(ancestorCache, v, w);
+    }
 
     public static void main(String[] args) {
         In in = new In("digraph1.txt");
