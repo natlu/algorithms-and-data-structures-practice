@@ -153,16 +153,20 @@ public class SAP {
 
     // length of shortest ancestral path between v and w; -1 if no such path
     public int length(int v, int w) {
-        List<Integer> vs = new ArrayList<>(v);
-        List<Integer> ws = new ArrayList<>(w);
+        List<Integer> vs = new ArrayList<>();
+        vs.add(v);
+        List<Integer> ws = new ArrayList<>();
+        ws.add(w);
         calc(vs, ws);
         return queryCache(lengthCache, vs, ws);
     }
 
     // a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
     public int ancestor(int v, int w) {
-        List<Integer> vs = new ArrayList<>(v);
-        List<Integer> ws = new ArrayList<>(w);
+        List<Integer> vs = new ArrayList<>();
+        vs.add(v);
+        List<Integer> ws = new ArrayList<>();
+        ws.add(w);
         calc(vs, ws);
         return queryCache(ancestorCache, vs, ws);
     }
