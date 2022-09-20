@@ -30,21 +30,6 @@ public class SAP {
         ancestorCache = new HashMap<>();
     }
 
-    private void cache(int v, int w, int minLen, int ancestor) {
-        int x;
-        int y;
-        if (v <= w) {
-            x = v;
-            y = w;
-        }
-        else {
-            x = w;
-            y = v;
-        }
-        lengthCache.get(x).put(y, minLen);
-        ancestorCache.get(x).put(y, ancestor);
-    }
-
     private int getHashCode(Iterable<Integer> it) {
         HashSet<Integer> hs = new HashSet<>((Collection) it);
         ArrayList<Integer> al = new ArrayList<>();
@@ -119,7 +104,6 @@ public class SAP {
             lst.enqueue(w);
             enqueued[w] = true;
         }
-
 
         int len = Integer.MAX_VALUE;
         int ancestor = -1;
