@@ -4,6 +4,7 @@ import edu.princeton.cs.algs4.Queue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,14 +15,22 @@ public class WordNet {
     private Digraph reverseDigraph;
     private boolean[] marked;
     private boolean[] onStack;
-
-    List<String[]> synset;
-
+    private HashSet<String> uniqueNouns;
+    private List<String> synset;
+    private HashMap<String, List<Integer>> synsetMap;
     private Set<Integer> vertices = new HashSet<>();
+    private SAP mySap;
 
-    public List<String[]> getSynset() {
+    // TODO: delete method
+    public List<String> getSynset() {
         return synset;
     }
+
+    // TODO: delete method
+    public HashMap<String, List<Integer>> getSynsetMap() {
+        return synsetMap;
+    }
+
 
     // constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
@@ -33,11 +42,15 @@ public class WordNet {
         onStack = new boolean[digraph.V()];
 
         dfs(reverseDigraph, getRootVertex());
+
+        mySap = new SAP(digraph);
     }
 
     private void readSynsets(String file) {
         In input = new In(file);
         synset = new ArrayList<>();
+        synsetMap = new HashMap<>();
+        uniqueNouns = new HashSet<>();
         while (input.hasNextLine()) {
             String line = input.readLine();
             if (line.isBlank()) {
@@ -47,7 +60,14 @@ public class WordNet {
             int id = Integer.parseInt(fields[0]);
             String[] nouns = fields[1].split(" ");
             // String description = fields[2];
-            synset.add(id, nouns);
+            synset.add(id, fields[1]);
+            uniqueNouns.addAll(List.of(nouns));
+            for (String n : nouns) {
+                if (synsetMap.get(n) == null) {
+                    synsetMap.put(n, new ArrayList<>());
+                }
+                synsetMap.get(n).add(id);
+            }
         }
     }
 
@@ -119,31 +139,28 @@ public class WordNet {
 
 
     // returns all WordNet nouns
-    // TODO: store nouns in HashSet to satisfy speed constraints for isNoun
     public Iterable<String> nouns() {
-        List<String> nouns = new ArrayList<String>();
-        for (String[] n : synset) {
-            nouns.addAll(Arrays.asList(n));
-        }
-        return nouns;
+        List<String> nounCopy = new ArrayList<>();
+        nounCopy.addAll(uniqueNouns);
+        return nounCopy;
     }
 
     // is the word a WordNet noun?
     public boolean isNoun(String word) {
-        for (String n : nouns()) {
-            if (word.equals(n)) {
-                return true;
-            }
-        }
-        return false;
+        return uniqueNouns.contains(word);
     }
 
-    // // distance between nounA and nounB (defined below)
-    // public int distance(String nounA, String nounB)
-    //
-    // // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
-    // // in a shortest ancestral path (defined below)
-    // public String sap(String nounA, String nounB)
+    // distance between nounA and nounB (defined below)
+    public int distance(String nounA, String nounB) {
+        return mySap.length(synsetMap.get(nounA), synsetMap.get(nounB));
+    }
+
+    // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
+    // in a shortest ancestral path (defined below)
+    public String sap(String nounA, String nounB) {
+        int ancestorVertex = mySap.ancestor(synsetMap.get(nounA), synsetMap.get(nounB));
+        return synset.get(ancestorVertex);
+    }
 
     public static void main(String[] args) {
 
@@ -155,14 +172,22 @@ public class WordNet {
 
         System.out.println("hypernyms-verysmall");
         WordNet foo = new WordNet("./synsets3.txt", "./hypernyms-verysmall.txt");
+
         System.out.println(Arrays.toString(foo.getSynset().get(0)));
         System.out.println(Arrays.toString(foo.getSynset().get(1)));
         System.out.println(Arrays.toString(foo.getSynset().get(2)));
 
-        // for (String s : foo.nouns()) {
-        //     System.out.println(s);
-        // }
+        System.out.println("synset map ------------------");
+        for (int i : foo.getSynsetMap().get("b")) {
+            System.out.println(i);
+        }
 
+        System.out.println("nouns ------------------");
+        for (String n : foo.nouns()) {
+            System.out.println(n);
+        }
+
+        System.out.println("is noun ------------------");
         System.out.println(foo.isNoun("a"));
         System.out.println(foo.isNoun("A"));
         System.out.println(foo.isNoun("foo"));
