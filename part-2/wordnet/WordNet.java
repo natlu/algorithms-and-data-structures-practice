@@ -173,9 +173,9 @@ public class WordNet {
         System.out.println("hypernyms-verysmall");
         WordNet foo = new WordNet("./synsets3.txt", "./hypernyms-verysmall.txt");
 
-        System.out.println(Arrays.toString(foo.getSynset().get(0)));
-        System.out.println(Arrays.toString(foo.getSynset().get(1)));
-        System.out.println(Arrays.toString(foo.getSynset().get(2)));
+        // System.out.println(Arrays.toString(foo.getSynset().get(0)));
+        // System.out.println(Arrays.toString(foo.getSynset().get(1)));
+        // System.out.println(Arrays.toString(foo.getSynset().get(2)));
 
         System.out.println("synset map ------------------");
         for (int i : foo.getSynsetMap().get("b")) {
