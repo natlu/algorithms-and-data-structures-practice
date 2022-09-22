@@ -25,6 +25,9 @@ public class SAP {
 
     // constructor takes a digraph (not necessarily a DAG)
     public SAP(Digraph G) {
+        if (G == null) {
+            throw new IllegalArgumentException("argument G cannot be null");
+        }
         this.G = G;
         lengthCache = new HashMap<>();
         ancestorCache = new HashMap<>();
@@ -81,7 +84,32 @@ public class SAP {
         ancestorCache.get(x).put(y, ancestor);
     }
 
+    private void validateVertex(int v) {
+        if (v < 0 || v >= G.V())
+            throw new IllegalArgumentException(
+                    "vertex " + v + " is not between 0 and " + (G.V() - 1));
+    }
+
+    private void validateVertices(Iterable<Integer> vertices) {
+        if (vertices == null) {
+            throw new IllegalArgumentException("argument is null");
+        }
+        int count = 0;
+        for (Integer v : vertices) {
+            count++;
+            if (v == null) {
+                throw new IllegalArgumentException("vertex is null");
+            }
+            validateVertex(v);
+        }
+        if (count == 0) {
+            throw new IllegalArgumentException("zero vertices");
+        }
+    }
+
     public void calc(Iterable<Integer> vs, Iterable<Integer> ws) {
+        validateVertices(vs);
+        validateVertices(ws);
         Integer resLength = queryCache(lengthCache, vs, ws);
         Integer resAncestor = queryCache(ancestorCache, vs, ws);
         if (resLength != null && resAncestor != null) {
@@ -137,6 +165,8 @@ public class SAP {
 
     // length of shortest ancestral path between v and w; -1 if no such path
     public int length(int v, int w) {
+        validateVertex(v);
+        validateVertex(w);
         List<Integer> vs = new ArrayList<>();
         vs.add(v);
         List<Integer> ws = new ArrayList<>();
@@ -147,6 +177,8 @@ public class SAP {
 
     // a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
     public int ancestor(int v, int w) {
+        validateVertex(v);
+        validateVertex(w);
         List<Integer> vs = new ArrayList<>();
         vs.add(v);
         List<Integer> ws = new ArrayList<>();
@@ -157,12 +189,16 @@ public class SAP {
 
     // length of shortest ancestral path between any vertex in v and any vertex in w; -1 if no such path
     public int length(Iterable<Integer> v, Iterable<Integer> w) {
+        validateVertices(v);
+        validateVertices(w);
         calc(v, w);
         return queryCache(lengthCache, v, w);
     }
 
     // // a common ancestor that participates in shortest ancestral path; -1 if no such path
     public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
+        validateVertices(v);
+        validateVertices(w);
         calc(v, w);
         return queryCache(ancestorCache, v, w);
     }
