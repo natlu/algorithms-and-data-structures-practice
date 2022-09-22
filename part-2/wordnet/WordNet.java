@@ -78,13 +78,13 @@ public class WordNet {
                 break;
             }
             String[] fields = line.split(",");
-            Integer from_v = Integer.parseInt(fields[0]);
-            vertices.add(from_v);
+            int fromV = Integer.parseInt(fields[0]);
+            vertices.add(fromV);
             int n = fields.length;
             for (int i = 1; i < n; i++) {
-                int to_v = Integer.parseInt(fields[i]);
-                vertices.add(to_v);
-                queue.enqueue(new ArrayList<Integer>(Arrays.asList(from_v, to_v)));
+                int toV = Integer.parseInt(fields[i]);
+                vertices.add(toV);
+                queue.enqueue(new ArrayList<Integer>(Arrays.asList(fromV, toV)));
             }
         }
         return queue;
