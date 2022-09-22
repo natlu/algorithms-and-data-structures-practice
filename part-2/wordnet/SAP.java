@@ -8,7 +8,6 @@ import edu.princeton.cs.algs4.BreadthFirstDirectedPaths;
 import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;
-import edu.princeton.cs.algs4.StdOut;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -96,22 +95,15 @@ public class SAP {
         if (vertices == null) {
             throw new IllegalArgumentException("argument is null");
         }
-        int count = 0;
         for (Integer v : vertices) {
-            count++;
             if (v == null) {
                 throw new IllegalArgumentException("vertex is null");
             }
             validateVertex(v);
         }
-        if (count == 0) {
-            throw new IllegalArgumentException("zero vertices");
-        }
     }
 
     private void calc(Iterable<Integer> vs, Iterable<Integer> ws) {
-        validateVertices(vs);
-        validateVertices(ws);
         Integer resLength = queryCache(lengthCache, vs, ws);
         Integer resAncestor = queryCache(ancestorCache, vs, ws);
         if (resLength != null && resAncestor != null) {
@@ -143,9 +135,9 @@ public class SAP {
             if (vg.hasPathTo(i) && wg.hasPathTo(i)) {
                 int vd = vg.distTo(i);
                 int wd = wg.distTo(i);
-                if (vd >= len || wd >= len) {
-                    break;
-                }
+                // if (vd >= len || wd >= len) {
+                //     break;
+                // }
                 if ((vd + wd) < len) {
                     len = vd + wd;
                     ancestor = i;
@@ -206,67 +198,67 @@ public class SAP {
     }
 
     public static void main(String[] args) {
-        In in = new In("digraph1.txt");
+        In in = new In("digraph3.txt");
         Digraph G = new Digraph(in);
         SAP sap = new SAP(G);
 
         int x;
         int y;
 
-        x = 3;
-        y = 11;
-        StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
-        StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
+        x = 13;
+        y = 9;
+        System.out.println(sap.length(x, y));
+        // StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
 
-        x = 11;
-        y = 3;
-        StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
-
-        x = 9;
-        y = 12;
-        StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
-
-        x = 7;
-        y = 2;
-        StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
-
-        x = 1;
-        y = 6;
-        StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
-
-
-        // https://docs.oracle.com/javase/6/docs/api/java/util/List.html#hashCode()
-        List<Integer> foo1 = new ArrayList<>();
-        foo1.add(1);
-        foo1.add(2);
-        foo1.add(3);
-
-        List<Integer> foo2 = new ArrayList<>();
-        foo2.add(1);
-        foo2.add(2);
-        foo2.add(3);
-
-        boolean iseq = foo1.hashCode() == foo2.hashCode();
-        System.out.println(iseq);
-
-        System.out.println(foo1.hashCode());
-
-        List<Integer> foo0 = new ArrayList<>();
-        foo0.add(2);
-        System.out.println(foo0.hashCode());
-
-
-        HashSet<Integer> hs = new HashSet<>();
-        hs.add(1);
-        hs.add(2);
-
-        HashSet<Integer> hs2 = new HashSet<>();
-        hs2.add(3);
-
-        boolean hshs = hs.hashCode() == hs.hashCode();
-        System.out.println(hshs);
-        System.out.println(hs.hashCode());
-        System.out.println(hs2.hashCode());
+        // x = 11;
+        // y = 3;
+        // StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
+        //
+        // x = 9;
+        // y = 12;
+        // StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
+        //
+        // x = 7;
+        // y = 2;
+        // StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
+        //
+        // x = 1;
+        // y = 6;
+        // StdOut.printf("length = %d ancestor = %d\n", sap.length(x, y), sap.ancestor(x, y));
+        //
+        //
+        // // https://docs.oracle.com/javase/6/docs/api/java/util/List.html#hashCode()
+        // List<Integer> foo1 = new ArrayList<>();
+        // foo1.add(1);
+        // foo1.add(2);
+        // foo1.add(3);
+        //
+        // List<Integer> foo2 = new ArrayList<>();
+        // foo2.add(1);
+        // foo2.add(2);
+        // foo2.add(3);
+        //
+        // boolean iseq = foo1.hashCode() == foo2.hashCode();
+        // System.out.println(iseq);
+        //
+        // System.out.println(foo1.hashCode());
+        //
+        // List<Integer> foo0 = new ArrayList<>();
+        // foo0.add(2);
+        // System.out.println(foo0.hashCode());
+        //
+        //
+        // HashSet<Integer> hs = new HashSet<>();
+        // hs.add(1);
+        // hs.add(2);
+        //
+        // HashSet<Integer> hs2 = new HashSet<>();
+        // hs2.add(3);
+        //
+        // boolean hshs = hs.hashCode() == hs.hashCode();
+        // System.out.println(hshs);
+        // System.out.println(hs.hashCode());
+        // System.out.println(hs2.hashCode());
 
 
     }
