@@ -21,19 +21,15 @@ public class WordNet {
     private Set<Integer> vertices = new HashSet<>();
     private SAP mySap;
 
-    // TODO: delete method
-    public List<String> getSynset() {
-        return synset;
-    }
-
-    // TODO: delete method
-    public HashMap<String, List<Integer>> getSynsetMap() {
-        return synsetMap;
-    }
-
-
     // constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
+        if (synsets == null) {
+            throw new IllegalArgumentException("argument sysets cannot be null");
+        }
+        if (hypernyms == null) {
+            throw new IllegalArgumentException("argument hypernyms cannot be null");
+        }
+
         Queue<ArrayList<Integer>> inputQueue = readHypernyms(hypernyms);
         buildDigraphs(inputQueue);
         readSynsets(synsets);
@@ -147,17 +143,44 @@ public class WordNet {
 
     // is the word a WordNet noun?
     public boolean isNoun(String word) {
+        if (word == null) {
+            throw new IllegalArgumentException("argument word cannot be null");
+        }
         return uniqueNouns.contains(word);
     }
 
     // distance between nounA and nounB (defined below)
     public int distance(String nounA, String nounB) {
+        if (nounA == null) {
+            throw new IllegalArgumentException("argument nounA cannot be null");
+        }
+        if (nounB == null) {
+            throw new IllegalArgumentException("argument nounB cannot be null");
+        }
+        if (!synsetMap.containsKey(nounA)) {
+            throw new IllegalArgumentException("argument nounA not a wordnet noun");
+        }
+        if (!synsetMap.containsKey(nounB)) {
+            throw new IllegalArgumentException("argument nounB not a wordnet noun");
+        }
         return mySap.length(synsetMap.get(nounA), synsetMap.get(nounB));
     }
 
     // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
     // in a shortest ancestral path (defined below)
     public String sap(String nounA, String nounB) {
+        if (nounA == null) {
+            throw new IllegalArgumentException("argument nounA cannot be null");
+        }
+        if (nounB == null) {
+            throw new IllegalArgumentException("argument nounB cannot be null");
+        }
+        if (!synsetMap.containsKey(nounA)) {
+            throw new IllegalArgumentException("argument nounA not a wordnet noun");
+        }
+        if (!synsetMap.containsKey(nounB)) {
+            throw new IllegalArgumentException("argument nounB not a wordnet noun");
+        }
         int ancestorVertex = mySap.ancestor(synsetMap.get(nounA), synsetMap.get(nounB));
         return synset.get(ancestorVertex);
     }
@@ -168,19 +191,10 @@ public class WordNet {
         // if not then could fail as Digraph needs the vertex index to be <=
         // the input V
         // will assume its fine so won't do any further processing
-
+        WordNet foo = new WordNet(null, "./hypernyms-verysmall.txt");
 
         System.out.println("hypernyms-verysmall");
-        WordNet foo = new WordNet("./synsets3.txt", "./hypernyms-verysmall.txt");
-
-        // System.out.println(Arrays.toString(foo.getSynset().get(0)));
-        // System.out.println(Arrays.toString(foo.getSynset().get(1)));
-        // System.out.println(Arrays.toString(foo.getSynset().get(2)));
-
-        System.out.println("synset map ------------------");
-        for (int i : foo.getSynsetMap().get("b")) {
-            System.out.println(i);
-        }
+        // WordNet foo = new WordNet("./synsets3.txt", "./hypernyms-verysmall.txt");
 
         System.out.println("nouns ------------------");
         for (String n : foo.nouns()) {
