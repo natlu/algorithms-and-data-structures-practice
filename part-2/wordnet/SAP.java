@@ -11,7 +11,6 @@ import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -34,7 +33,10 @@ public class SAP {
     }
 
     private int getHashCode(Iterable<Integer> it) {
-        HashSet<Integer> hs = new HashSet<>((Collection) it);
+        HashSet<Integer> hs = new HashSet<>();
+        for (Integer i : it) {
+            hs.add(i);
+        }
         ArrayList<Integer> al = new ArrayList<>();
         al.addAll(hs);
         Collections.sort(al);
@@ -107,7 +109,7 @@ public class SAP {
         }
     }
 
-    public void calc(Iterable<Integer> vs, Iterable<Integer> ws) {
+    private void calc(Iterable<Integer> vs, Iterable<Integer> ws) {
         validateVertices(vs);
         validateVertices(ws);
         Integer resLength = queryCache(lengthCache, vs, ws);
