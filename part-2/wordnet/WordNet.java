@@ -18,8 +18,8 @@ public class WordNet {
     private HashSet<String> uniqueNouns;
     private List<String> synset;
     private HashMap<String, List<Integer>> synsetMap;
-    final private Set<Integer> vertices = new HashSet<>();
-    final private SAP mySap;
+    private final Set<Integer> vertices = new HashSet<>();
+    private final SAP mySap;
 
     // constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
