@@ -18,9 +18,9 @@ import java.util.List;
 
 public class SAP {
 
-    private Digraph G;
-    private HashMap<Integer, HashMap<Integer, Integer>> lengthCache;
-    private HashMap<Integer, HashMap<Integer, Integer>> ancestorCache;
+    final private Digraph G;
+    final private HashMap<Integer, HashMap<Integer, Integer>> lengthCache;
+    final private HashMap<Integer, HashMap<Integer, Integer>> ancestorCache;
 
     // constructor takes a digraph (not necessarily a DAG)
     public SAP(Digraph G) {
