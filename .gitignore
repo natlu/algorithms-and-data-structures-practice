@@ -24,9 +24,13 @@ hs_err_pid*
 
 # IntelliJ
 .idea/*
+.lift/*
 *.iml
 
 *.sw[a-z]
 
 *.txt
 *.png
+*.DS_STORE
+
+
