@@ -23,8 +23,8 @@
 hs_err_pid*
 
 # IntelliJ
-.idea/*
-.lift/*
+**/.idea/*
+**/.lift/*
 *.iml
 
 *.sw[a-z]
