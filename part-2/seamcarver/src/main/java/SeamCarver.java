@@ -111,9 +111,7 @@ public class SeamCarver {
         for (int n = 0; n < width() - 1; n++) { // loop through the potential start positions
 
             // for each starting pos, get the shortest path
-            for (int r = 0; r < height() - 1;
-                 r++) { // does it need to be -2 to not go out of bounds????????????
-                // for (int c = max(0, -r + n); c <= min(width() - 1, r + n); c++) {
+            for (int r = 0; r < height() - 2; r++) {
                 for (int c : relevantIndices(n, r)) {
                     double prevDist = distTo[c][r];
                     for (int c_ : adj(c)) {
@@ -133,6 +131,30 @@ public class SeamCarver {
 
                     }
                 }
+            }
+
+            int seamEnd = -1;
+            double minDist = HUGEDIST;
+            for (int c = 0; c <= width() - 1; c++) {
+                double d = distTo[c][height() - 1];
+                if (d < minDist) {
+                    seamEnd = c;
+                    minDist = d;
+                }
+            }
+
+            if (seamEnd == -1) {
+                throw new RuntimeException("somethings gone terribly wrong");
+            }
+
+            int prev;
+            prev = seamEnd;
+            // prev = edgeTo[seamEnd][height() - 1];
+            int[] seam = new int[height()];
+            // seam[height() - 1] = seamEnd;
+            for (int h = height() - 1; h >= 0; h--) {
+                seam[h] = prev;
+                prev = edgeTo[prev][h];
             }
 
         }
