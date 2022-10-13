@@ -75,30 +75,26 @@ public class SeamCarver {
     }
 
     public int[] findVerticalSeam() {
+        // constants
+        double UNKNOWN = Double.MAX_VALUE;
+        double INFINITY = Double.MAX_VALUE;
+
         double[][] energy;
         double[][] distTo;
         int[][] edgeTo;
         double currMinVal;
         double e;
-        double BIGENERGY;
-        double HUGEDIST;
-
-        // to represent non calculated energy
-        // probably should rename to something that makes sense
-        BIGENERGY = Double.MAX_VALUE;
-
-        HUGEDIST = Double.MAX_VALUE;
 
         energy = new double[width()][height()];
         distTo = new double[width()][height()];
         edgeTo = new int[width()][height()];
 
         for (double[] array : energy) {
-            Arrays.fill(array, BIGENERGY);
+            Arrays.fill(array, UNKNOWN);
         }
 
         for (double[] array : distTo) {
-            Arrays.fill(array, BIGENERGY);
+            Arrays.fill(array, UNKNOWN);
         }
 
         for (int[] array : edgeTo) {
@@ -115,7 +111,7 @@ public class SeamCarver {
                 for (int c : relevantIndices(n, r)) {
                     double prevDist = distTo[c][r];
                     for (int c_ : adj(c)) {
-                        if (energy[c_][r] == BIGENERGY) {
+                        if (energy[c_][r] == UNKNOWN) {
                             e = energy(c_, r);
                             energy[c_][r] = e;
                         }
@@ -134,7 +130,7 @@ public class SeamCarver {
             }
 
             int seamEnd = -1;
-            double minDist = HUGEDIST;
+            double minDist = INFINITY;
             for (int c = 0; c <= width() - 1; c++) {
                 double d = distTo[c][height() - 1];
                 if (d < minDist) {
@@ -144,7 +140,7 @@ public class SeamCarver {
             }
 
             if (seamEnd == -1) {
-                throw new RuntimeException("somethings gone terribly wrong");
+                throw new RuntimeException("something has gone terribly wrong");
             }
 
             int prev;
@@ -188,7 +184,6 @@ public class SeamCarver {
     // // remove vertical seam from current picture
     // public void removeVerticalSeam(int[] seam)
 
-    //  unit testing (optional)
     public static void main(String[] args) {
         // System.out.println("asdfa");
         Picture picture = new Picture("./5x6.png");
