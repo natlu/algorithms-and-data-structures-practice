@@ -3,6 +3,10 @@ import edu.princeton.cs.algs4.Picture;
 import java.util.Arrays;
 
 public class SeamCarver {
+    // private static double UNKNOWN_ENERGY = Double.MAX_VALUE;
+    private static double UNKNOWN_ENERGY = 10000000;
+    // private static double INFINITY = Double.MAX_VALUE;
+    private static double INFINITY = 10000000;
 
     private Picture picture;
 
@@ -74,88 +78,133 @@ public class SeamCarver {
         return x;
     }
 
-    public int[] findVerticalSeam() {
-        // constants
-        double UNKNOWN = Double.MAX_VALUE;
-        double INFINITY = Double.MAX_VALUE;
+    private class SeamHelper {
+        private final int UNKNOWN_EDGE = -1;
 
-        double[][] energy;
-        double[][] distTo;
-        int[][] edgeTo;
-        double currMinVal;
-        double e;
+        private int width;
+        private int height;
 
-        energy = new double[width()][height()];
-        distTo = new double[width()][height()];
-        edgeTo = new int[width()][height()];
+        private double[][] energy;
+        private double[][] distTo;
+        private int[][] edgeTo;
 
-        for (double[] array : energy) {
-            Arrays.fill(array, UNKNOWN);
-        }
+        private double minDist = INFINITY;
+        private int[] seam;
 
-        for (double[] array : distTo) {
-            Arrays.fill(array, UNKNOWN);
-        }
+        public SeamHelper(double[][] energy) {
+            this.height = energy.length;
+            this.width = energy[0].length;
 
-        for (int[] array : edgeTo) {
-            // fill with -1 because the default 0 is a value with meaning
-            Arrays.fill(array, -1);
-        }
+            this.energy = energy;
+            // this.distTo = new double[width][height];
+            this.distTo = new double[height][width];
+            // this.edgeTo = new int[width][height];
+            this.edgeTo = new int[height][width];
 
-        // add func cacheEnergy to clean things up
-
-        for (int n = 0; n < width() - 1; n++) { // loop through the potential start positions
-
-            // for each starting pos, get the shortest path
-            for (int r = 0; r < height() - 2; r++) {
-                for (int c : relevantIndices(n, r)) {
-                    double prevDist = distTo[c][r];
-                    for (int c_ : adj(c)) {
-                        if (energy[c_][r] == UNKNOWN) {
-                            e = energy(c_, r);
-                            energy[c_][r] = e;
-                        }
-                        else {
-                            e = energy[c_][r];
-                        }
-                        // relaxing edges
-                        double currDist = distTo[c_][r + 1];
-                        if (prevDist + e < currDist) {
-                            distTo[c_][r + 1] = prevDist + e;
-                            edgeTo[c_][r + 1] = c_;
-                        }
-
-                    }
-                }
+            for (double[] array : this.distTo) {
+                Arrays.fill(array, INFINITY);
             }
+            Arrays.fill(distTo[0], 1000 * 1000);
 
+            for (int[] array : this.edgeTo) {
+                Arrays.fill(array, UNKNOWN_EDGE);
+            }
+            // since the borders have the same energy, just set the path to be itself
+            for (int i = 0; i < this.width; i++) {
+                this.edgeTo[0][i] = i;
+            }
+        }
+
+        public double getEnergy(int c, int r) {
+            double e;
+            if (energy[r][c] == UNKNOWN_ENERGY) {
+                e = energy(c, r);
+                energy[r][c] = e;
+            }
+            else {
+                e = energy[r][c];
+            }
+            return e;
+        }
+
+        public void relax(int fromC, int ToC, int r, double prevDist) {
+            double currDist = distTo[r][ToC];
+            double currEnergy = getEnergy(ToC, r);
+            if (prevDist + currEnergy < currDist) {
+                distTo[r][ToC] = prevDist + currEnergy;
+                edgeTo[r][ToC] = fromC;
+            }
+        }
+
+        public double getDist(int c, int r) {
+            return distTo[r][c];
+        }
+
+        private int getSeamEnd() {
             int seamEnd = -1;
-            double minDist = INFINITY;
-            for (int c = 0; c <= width() - 1; c++) {
-                double d = distTo[c][height() - 1];
+            for (int c = 0; c <= width - 1; c++) {
+                double d = distTo[height - 1][c];
                 if (d < minDist) {
                     seamEnd = c;
                     minDist = d;
                 }
             }
-
-            if (seamEnd == -1) {
-                throw new RuntimeException("something has gone terribly wrong");
-            }
-
-            int prev;
-            prev = seamEnd;
-            // prev = edgeTo[seamEnd][height() - 1];
-            int[] seam = new int[height()];
-            // seam[height() - 1] = seamEnd;
-            for (int h = height() - 1; h >= 0; h--) {
-                seam[h] = prev;
-                prev = edgeTo[prev][h];
-            }
-
+            return seamEnd;
         }
 
+        public int[] getSeam() {
+            int seamEnd = getSeamEnd();
+            seam = new int[height()];
+            int pos = seamEnd;
+            for (int i = height() - 1; i >= 0; i--) {
+                seam[i] = pos;
+                pos = edgeTo[i][pos];
+            }
+            return seam;
+        }
 
+        public double getMinDist() {
+            if (minDist == INFINITY) {
+                throw new RuntimeException("oops, bad design. need to call getSeam first");
+            }
+            return minDist;
+        }
+
+    }
+
+    public int[] findVerticalSeam() {
+
+        SeamHelper seamHelper;
+        double currMinDist = INFINITY;
+        int[] currMinSeam = new int[height()];
+        double[][] energy;
+        energy = new double[height()][width()];
+        for (double[] array : energy) {
+            Arrays.fill(array, UNKNOWN_ENERGY);
+        }
+
+        // loop through the potential start positions
+        // for each starting pos, get the shortest path
+        for (int n = 0; n < width() - 1; n++) {
+            seamHelper = new SeamHelper(energy);
+            for (int r = 0; r <= height() - 2; r++) {
+                int[] ri = relevantIndices(n, r);
+                for (int c : relevantIndices(n, r)) {
+                    double prevDist = seamHelper.getDist(c, r);
+                    for (int c_ : adj(c)) {
+                        seamHelper.relax(c, c_, r + 1, prevDist);
+                    }
+                }
+            }
+            int[] minSeam = seamHelper.getSeam();
+            double minDist = seamHelper.getMinDist();
+            if (minDist < currMinDist) {
+                currMinSeam = minSeam;
+                currMinDist = minDist;
+            }
+        }
+
+        return currMinSeam;
     }
 
     // can calc because it is a triangle with bounds
@@ -186,34 +235,40 @@ public class SeamCarver {
 
     public static void main(String[] args) {
         // System.out.println("asdfa");
-        Picture picture = new Picture("./5x6.png");
+        Picture picture = new Picture("./7x10.png");
         // picture.show();
 
         SeamCarver sc = new SeamCarver(picture);
 
-        int[] a1 = sc.relevantIndices(2, 0);
         System.out.println("------------------");
-        for (int a : a1) {
+        int[] vertSeam = sc.findVerticalSeam();
+        for (int a : vertSeam) {
             System.out.println(a);
         }
 
-        int[] a2 = sc.relevantIndices(2, 1);
-        System.out.println("------------------");
-        for (int a : a2) {
-            System.out.println(a);
-        }
-
-        int[] a3 = sc.relevantIndices(2, 2);
-        System.out.println("------------------");
-        for (int a : a3) {
-            System.out.println(a);
-        }
-
-        int[] a4 = sc.relevantIndices(2, 3);
-        System.out.println("------------------");
-        for (int a : a4) {
-            System.out.println(a);
-        }
+        // int[] a1 = sc.relevantIndices(2, 0);
+        // System.out.println("------------------");
+        // for (int a : a1) {
+        //     System.out.println(a);
+        // }
+        //
+        // int[] a2 = sc.relevantIndices(2, 1);
+        // System.out.println("------------------");
+        // for (int a : a2) {
+        //     System.out.println(a);
+        // }
+        //
+        // int[] a3 = sc.relevantIndices(2, 2);
+        // System.out.println("------------------");
+        // for (int a : a3) {
+        //     System.out.println(a);
+        // }
+        //
+        // int[] a4 = sc.relevantIndices(2, 3);
+        // System.out.println("------------------");
+        // for (int a : a4) {
+        //     System.out.println(a);
+        // }
 
 
     }
