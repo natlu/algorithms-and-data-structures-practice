@@ -78,6 +78,27 @@ public class SeamCarver {
         return x;
     }
 
+    private int get2dArray(int[][] array, int c, int r) {
+        // return array[r][c];
+        return array[c][r];
+    }
+
+    private double get2dArray(double[][] array, int c, int r) {
+        // return array[r][c];
+        return array[c][r];
+    }
+
+    private void set2dArray(int[][] array, int c, int r, int val) {
+        // array[r][c] = val;
+        array[c][r] = val;
+    }
+
+    private void set2dArray(double[][] array, int c, int r, double val) {
+        // array[r][c] = val;
+        array[c][r] = val;
+    }
+
+
     private class SeamHelper {
         private final int UNKNOWN_EDGE = -1;
 
@@ -103,8 +124,9 @@ public class SeamCarver {
 
             for (double[] array : this.distTo) {
                 Arrays.fill(array, INFINITY);
+                array[0] = 1000 * 1000;
             }
-            Arrays.fill(distTo[0], 1000 * 1000);
+            // Arrays.fill(distTo[0], 1000 * 1000);
 
             for (int[] array : this.edgeTo) {
                 Arrays.fill(array, UNKNOWN_EDGE);
@@ -117,33 +139,33 @@ public class SeamCarver {
 
         public double getEnergy(int c, int r) {
             double e;
-            if (energy[r][c] == UNKNOWN_ENERGY) {
+            if (get2dArray(energy, c, r) == UNKNOWN_ENERGY) {
                 e = energy(c, r);
-                energy[r][c] = e;
+                set2dArray(energy, c, r, e);
             }
             else {
-                e = energy[r][c];
+                e = get2dArray(energy, c, r);
             }
             return e;
         }
 
         public void relax(int fromC, int ToC, int r, double prevDist) {
-            double currDist = distTo[r][ToC];
+            double currDist = get2dArray(distTo, ToC, r);
             double currEnergy = getEnergy(ToC, r);
             if (prevDist + currEnergy < currDist) {
-                distTo[r][ToC] = prevDist + currEnergy;
-                edgeTo[r][ToC] = fromC;
+                set2dArray(distTo, ToC, r, prevDist + currEnergy);
+                set2dArray(edgeTo, ToC, r, fromC);
             }
         }
 
         public double getDist(int c, int r) {
-            return distTo[r][c];
+            return get2dArray(distTo, c, r);
         }
 
         private int getSeamEnd() {
             int seamEnd = -1;
             for (int c = 0; c <= width - 1; c++) {
-                double d = distTo[height - 1][c];
+                double d = get2dArray(distTo, c, height - 1);
                 if (d < minDist) {
                     seamEnd = c;
                     minDist = d;
@@ -158,7 +180,7 @@ public class SeamCarver {
             int pos = seamEnd;
             for (int i = height() - 1; i >= 0; i--) {
                 seam[i] = pos;
-                pos = edgeTo[i][pos];
+                pos = get2dArray(edgeTo, pos, i);
             }
             return seam;
         }
@@ -174,20 +196,27 @@ public class SeamCarver {
 
     public int[] findVerticalSeam() {
 
+        // int height = width();
+        // int width = height();
+        int height = height();
+        int width = width();
+
         SeamHelper seamHelper;
         double currMinDist = INFINITY;
-        int[] currMinSeam = new int[height()];
+        int[] currMinSeam = new int[height];
         double[][] energy;
-        energy = new double[height()][width()];
+        energy = new double[height][width];
         for (double[] array : energy) {
             Arrays.fill(array, UNKNOWN_ENERGY);
         }
 
         // loop through the potential start positions
         // for each starting pos, get the shortest path
-        for (int n = 0; n < width() - 1; n++) {
+        // for (int n = 0; n < width - 1; n++) {
+        for (int n = 0; n < height - 1; n++) {
             seamHelper = new SeamHelper(energy);
-            for (int r = 0; r <= height() - 2; r++) {
+            for (int r = 0; r <= width - 2; r++) {
+                // for (int r = 0; r <= height - 2; r++) {
                 int[] ri = relevantIndices(n, r);
                 for (int c : relevantIndices(n, r)) {
                     double prevDist = seamHelper.getDist(c, r);
@@ -210,7 +239,8 @@ public class SeamCarver {
     // can calc because it is a triangle with bounds
     public int[] relevantIndices(int startPos, int depth) {
         int start = max(0, -depth + startPos);
-        int end = min(width() - 1, depth + startPos);
+        // int end = min(width() - 1, depth + startPos);
+        int end = min(height() - 1, depth + startPos);
         int[] ri = new int[end - start + 1];
         for (int i = 0; i < ri.length; i++) {
             ri[i] = start + i;
@@ -234,9 +264,9 @@ public class SeamCarver {
     // public void removeVerticalSeam(int[] seam)
 
     public static void main(String[] args) {
-        // System.out.println("asdfa");
-        Picture picture = new Picture("./7x10.png");
-        // picture.show();
+
+        // Picture picture = new Picture("./7x10.png");
+        Picture picture = new Picture("./3x4.png");
 
         SeamCarver sc = new SeamCarver(picture);
 
@@ -245,31 +275,6 @@ public class SeamCarver {
         for (int a : vertSeam) {
             System.out.println(a);
         }
-
-        // int[] a1 = sc.relevantIndices(2, 0);
-        // System.out.println("------------------");
-        // for (int a : a1) {
-        //     System.out.println(a);
-        // }
-        //
-        // int[] a2 = sc.relevantIndices(2, 1);
-        // System.out.println("------------------");
-        // for (int a : a2) {
-        //     System.out.println(a);
-        // }
-        //
-        // int[] a3 = sc.relevantIndices(2, 2);
-        // System.out.println("------------------");
-        // for (int a : a3) {
-        //     System.out.println(a);
-        // }
-        //
-        // int[] a4 = sc.relevantIndices(2, 3);
-        // System.out.println("------------------");
-        // for (int a : a4) {
-        //     System.out.println(a);
-        // }
-
 
     }
 
