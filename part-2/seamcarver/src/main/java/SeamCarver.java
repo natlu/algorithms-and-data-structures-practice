@@ -10,6 +10,9 @@ public class SeamCarver {
     private boolean isTransposed;
 
     public SeamCarver(Picture picture) {
+        if (picture == null) {
+            throw new IllegalArgumentException("picture must not be null");
+        }
         this.picture = new Picture(picture);
         this.isTransposed = false;
     }
@@ -323,12 +326,12 @@ public class SeamCarver {
         if (seam == null) {
             throw new IllegalArgumentException("seam cannot be null");
         }
+        if (isTransposed)
+            transpose();
         if (picture.width() <= 1) {
             throw new IllegalArgumentException(
                     "Cannot remove vertical seam on picture with width <= 1");
         }
-        if (isTransposed)
-            transpose();
         removeSeam(seam);
     }
 
@@ -336,12 +339,12 @@ public class SeamCarver {
         if (seam == null) {
             throw new IllegalArgumentException("seam cannot be null");
         }
-        if (picture.height() <= 1) {
-            throw new IllegalArgumentException(
-                    "Cannot remove vertical seam on picture with height <= 1");
-        }
         if (!isTransposed)
             transpose();
+        if (picture.width() <= 1) { // width because its transposed
+            throw new IllegalArgumentException(
+                    "Cannot remove horizontal seam on picture with height <= 1");
+        }
         removeSeam(seam);
     }
 
