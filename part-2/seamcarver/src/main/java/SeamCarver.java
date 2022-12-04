@@ -3,53 +3,58 @@ import edu.princeton.cs.algs4.Picture;
 import java.util.Arrays;
 
 public class SeamCarver {
-    // private static double UNKNOWN_ENERGY = Double.MAX_VALUE;
-    private static double UNKNOWN_ENERGY = 1000 * 1000;
-    private static double INFINITY = Double.MAX_VALUE;
-    // private static double INFINITY = 1000 * 1000;
+    private static final double UNKNOWN_ENERGY = Double.POSITIVE_INFINITY;
+    private static final double INFINITY = Double.POSITIVE_INFINITY;
 
     private Picture picture;
+    private boolean isTransposed;
 
     public SeamCarver(Picture picture) {
-        this.picture = picture;
+        this.picture = new Picture(picture);
+        this.isTransposed = false;
     }
 
     public Picture picture() {
-        return (picture);
+        if (isTransposed)
+            transpose();
+        return new Picture(picture);
     }
 
     public int width() {
+        if (isTransposed)
+            transpose();
         return (picture.width());
     }
 
     public int height() {
+        if (isTransposed)
+            transpose();
         return (picture.height());
     }
 
     private class RGB {
-        int R;
-        int G;
-        int B;
+        int r;
+        int g;
+        int b;
 
         public RGB(int encodedRGB) {
-            this.R = (encodedRGB >> 16) & 0xFF;
-            this.G = (encodedRGB >> 8) & 0xFF;
-            this.B = (encodedRGB >> 0) & 0xFF;
+            this.r = (encodedRGB >> 16) & 0xFF;
+            this.g = (encodedRGB >> 8) & 0xFF;
+            this.b = (encodedRGB >> 0) & 0xFF;
         }
     }
 
     private int squaredDelta(RGB rgb1, RGB rgb2) {
-        int rd = (rgb1.R - rgb2.R);
-        int gd = (rgb1.G - rgb2.G);
-        int bd = (rgb1.B - rgb2.B);
+        int rd = (rgb1.r - rgb2.r);
+        int gd = (rgb1.g - rgb2.g);
+        int bd = (rgb1.b - rgb2.b);
 
         return (rd * rd + gd * gd + bd * bd);
     }
 
-    public double energy(int x, int y) {
-
-        if (x == 0 || x == (width() - 1) || y == 0 || y == (height() - 1)) {
-            return 1000 * 1000;
+    private double getEnergyHelper(int x, int y) {
+        if (x == 0 || x == (picture.width() - 1) || y == 0 || y == (picture.height() - 1)) {
+            return 1000;
         }
 
         RGB rgbx1 = new RGB(picture.getRGB(x - 1, y));
@@ -60,8 +65,19 @@ public class SeamCarver {
         RGB rgby2 = new RGB(picture.getRGB(x, y + 1));
         int yd = squaredDelta(rgby1, rgby2);
 
-        // won't sqrt and hope no tests require it to be
-        return (double) xd + yd;
+        return Math.sqrt(xd + yd);
+    }
+
+    public double energy(int x, int y) {
+        if (isTransposed)
+            transpose();
+
+        if ((x < 0 || x >= picture.width()) || (y < 0 || y >= picture.height())) {
+            throw new IllegalArgumentException("Argument outside of prescribed range");
+        }
+
+        return getEnergyHelper(x, y);
+
     }
 
     private int max(int x, int y) {
@@ -80,65 +96,29 @@ public class SeamCarver {
 
     private int get2dArray(int[][] array, int c, int r) {
         return array[r][c];
-        // return array[c][r];
     }
 
     private double get2dArray(double[][] array, int c, int r) {
         return array[r][c];
-        // return array[c][r];
     }
 
     private void set2dArray(int[][] array, int c, int r, int val) {
         array[r][c] = val;
-        // array[c][r] = val;
     }
 
     private void set2dArray(double[][] array, int c, int r, double val) {
         array[r][c] = val;
-        // array[c][r] = val;
     }
-
-    // private class ArrayHelper {
-    //
-    //     final boolean transpose;
-    //
-    //     public ArrayHelper(boolean transpose) {
-    //         this.transpose = transpose;
-    //     }
-    //
-    //     private static int get2dArray(int[][] array, int c, int r) {
-    //         if ()
-    //         // return array[r][c];
-    //         return array[c][r];
-    //     }
-    //
-    //     private static double get2dArray(double[][] array, int c, int r) {
-    //         // return array[r][c];
-    //         return array[c][r];
-    //     }
-    //
-    //     private static void set2dArray(int[][] array, int c, int r, int val) {
-    //         // array[r][c] = val;
-    //         array[c][r] = val;
-    //     }
-    //
-    //     private static void set2dArray(double[][] array, int c, int r, double val) {
-    //         // array[r][c] = val;
-    //         array[c][r] = val;
-    //     }
-    //
-    // }
-
 
     private class SeamHelper {
         private final int UNKNOWN_EDGE = -1;
 
-        private int width;
-        private int height;
+        private final int width;
+        private final int height;
 
-        private double[][] energy;
-        private double[][] distTo;
-        private int[][] edgeTo;
+        private final double[][] energy;
+        private final double[][] distTo;
+        private final int[][] edgeTo;
 
         private double minDist = INFINITY;
         private int[] seam;
@@ -146,23 +126,19 @@ public class SeamCarver {
         // private final boolean transposed;
 
         public SeamHelper(double[][] energy) {
-            // public SeamHelper(double[][] energy, boolean transposed) {
-            // this.transposed = transposed;
 
             this.height = energy.length;
             this.width = energy[0].length;
 
             this.energy = energy;
-            // this.distTo = new double[width][height];
             this.distTo = new double[height][width];
-            // this.edgeTo = new int[width][height];
             this.edgeTo = new int[height][width];
 
             for (double[] array : this.distTo) {
                 Arrays.fill(array, INFINITY);
                 // array[0] = 1000 * 1000;
             }
-            Arrays.fill(distTo[0], 1000 * 1000);
+            Arrays.fill(distTo[0], 1000);
 
             for (int[] array : this.edgeTo) {
                 Arrays.fill(array, UNKNOWN_EDGE);
@@ -177,7 +153,7 @@ public class SeamCarver {
         public double getEnergy(int c, int r) {
             double e;
             if (get2dArray(energy, c, r) == UNKNOWN_ENERGY) {
-                e = energy(c, r);
+                e = getEnergyHelper(c, r);
                 set2dArray(energy, c, r, e);
             }
             else {
@@ -213,9 +189,9 @@ public class SeamCarver {
 
         public int[] getSeam() {
             int seamEnd = getSeamEnd();
-            seam = new int[height()];
+            seam = new int[picture.height()];
             int pos = seamEnd;
-            for (int i = height() - 1; i >= 0; i--) {
+            for (int i = picture.height() - 1; i >= 0; i--) {
                 seam[i] = pos;
                 pos = get2dArray(edgeTo, pos, i);
             }
@@ -231,12 +207,19 @@ public class SeamCarver {
 
     }
 
-    public int[] findVerticalSeam() {
+    private void transpose() {
+        Picture tPicture = new Picture(picture.height(), picture.width());
+        for (int col = 0; col < picture.width(); col++)
+            for (int row = 0; row < picture.height(); row++)
+                tPicture.setRGB(row, col, picture.getRGB(col, row));
+        this.picture = tPicture;
+        this.isTransposed = !this.isTransposed;
+    }
 
-        // int height = width();
-        // int width = height();
-        int height = height();
-        int width = width();
+    // finds the vertical seam
+    private int[] findSeam() {
+        int height = picture.height();
+        int width = picture.width();
 
         SeamHelper seamHelper;
         double currMinDist = INFINITY;
@@ -250,15 +233,12 @@ public class SeamCarver {
         // loop through the potential start positions
         // for each starting pos, get the shortest path
         for (int n = 0; n < width - 1; n++) {
-            // for (int n = 0; n < height - 1; n++) {
             seamHelper = new SeamHelper(energy);
             for (int r = 0; r <= height - 2; r++) {
-                // for (int r = 0; r <= width - 2; r++) {
-                //     int[] ri = relevantIndices(n, r);
                 for (int c : relevantIndices(n, r)) {
                     double prevDist = seamHelper.getDist(c, r);
-                    for (int c_ : adj(c)) {
-                        seamHelper.relax(c, c_, r + 1, prevDist);
+                    for (int cc : adj(c)) {
+                        seamHelper.relax(c, cc, r + 1, prevDist);
                     }
                 }
             }
@@ -273,11 +253,16 @@ public class SeamCarver {
         return currMinSeam;
     }
 
+    public int[] findVerticalSeam() {
+        if (isTransposed)
+            transpose();
+        return findSeam();
+    }
+
     // can calc because it is a triangle with bounds
-    public int[] relevantIndices(int startPos, int depth) {
+    private int[] relevantIndices(int startPos, int depth) {
         int start = max(0, -depth + startPos);
-        int end = min(width() - 1, depth + startPos);
-        // int end = min(height() - 1, depth + startPos);
+        int end = min(picture.width() - 1, depth + startPos);
         int[] ri = new int[end - start + 1];
         for (int i = 0; i < ri.length; i++) {
             ri[i] = start + i;
@@ -290,15 +275,75 @@ public class SeamCarver {
         return relevantIndices(x, 1);
     }
 
-    // // sequence of indices for horizontal seam
-    // public int[] findHorizontalSeam()
-    //
-    //
-    // // remove horizontal seam from current picture
-    // public void removeHorizontalSeam(int[] seam)
-    //
-    // // remove vertical seam from current picture
-    // public void removeVerticalSeam(int[] seam)
+    public int[] findHorizontalSeam() {
+        if (!isTransposed)
+            transpose();
+        return findSeam();
+    }
+
+
+    // removes vertical seam
+    private void removeSeam(int[] seam) {
+        if (seam.length != picture.height()) {
+            throw new IllegalArgumentException(
+                    "expected seam of length " + picture.height() + " not " + seam.length);
+        }
+        for (int s : seam) {
+            if (s < 0 || s > (picture.width() - 1)) {
+                throw new IllegalArgumentException(
+                        "Entry " + s + " is outside the presribed range: 0:" + (picture.width()
+                                - 1));
+            }
+        }
+        for (int i = 1; i < picture.height(); i++) {
+            int delta;
+            delta = seam[i - 1] - seam[i];
+            if (delta < -1 || delta > 1) {
+                throw new IllegalArgumentException(
+                        "Invalid seam. Adjacent seam entries mustn't differ by more than 1");
+            }
+        }
+        int seamPos;
+        int oldCol;
+        Picture newPicture = new Picture(picture.width() - 1, picture.height());
+        for (int row = 0; row < picture.height(); row++) {
+            seamPos = seam[row];
+            for (int col = 0; col < picture.width() - 1; col++) {
+                oldCol = col;
+                if (oldCol >= seamPos) {
+                    oldCol = oldCol + 1;
+                }
+                newPicture.setRGB(col, row, picture.getRGB(oldCol, row));
+            }
+        }
+        this.picture = newPicture;
+    }
+
+    public void removeVerticalSeam(int[] seam) {
+        if (seam == null) {
+            throw new IllegalArgumentException("seam cannot be null");
+        }
+        if (picture.width() <= 1) {
+            throw new IllegalArgumentException(
+                    "Cannot remove vertical seam on picture with width <= 1");
+        }
+        if (isTransposed)
+            transpose();
+        removeSeam(seam);
+    }
+
+    public void removeHorizontalSeam(int[] seam) {
+        if (seam == null) {
+            throw new IllegalArgumentException("seam cannot be null");
+        }
+        if (picture.height() <= 1) {
+            throw new IllegalArgumentException(
+                    "Cannot remove vertical seam on picture with height <= 1");
+        }
+        if (!isTransposed)
+            transpose();
+        removeSeam(seam);
+    }
 
     public static void main(String[] args) {
 
@@ -310,6 +355,14 @@ public class SeamCarver {
         System.out.println("------------------");
         int[] vertSeam = sc.findVerticalSeam();
         for (int a : vertSeam) {
+            System.out.println(a);
+        }
+
+        sc.removeVerticalSeam(vertSeam);
+
+        System.out.println("------------------");
+        int[] horiSeam = sc.findHorizontalSeam();
+        for (int a : horiSeam) {
             System.out.println(a);
         }
 
