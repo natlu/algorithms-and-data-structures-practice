@@ -7,7 +7,7 @@ import java.util.List;
 public class BaseballElimination {
 
     private int numberOfTeams;
-    private String[] team;
+    private String[] teams;
     private int[] w;
     private int[] l;
     private int[] r;
@@ -17,7 +17,7 @@ public class BaseballElimination {
         In input = new In(filename);
 
         numberOfTeams = Integer.parseInt(input.readLine());
-        team = new String[numberOfTeams];
+        teams = new String[numberOfTeams];
         w = new int[numberOfTeams];
         l = new int[numberOfTeams];
         r = new int[numberOfTeams];
@@ -30,7 +30,7 @@ public class BaseballElimination {
                 break;
             }
             String[] fields = line.split("\\s+");
-            team[i] = fields[0];
+            teams[i] = fields[0];
             w[i] = Integer.parseInt(fields[1]);
             l[i] = Integer.parseInt(fields[2]);
             r[i] = Integer.parseInt(fields[3]);
@@ -44,10 +44,10 @@ public class BaseballElimination {
         return numberOfTeams;
     }
     public Iterable<String> teams() {
-        return Arrays.asList(team);
+        return Arrays.asList(teams);
     }
     private int teamIndex(String team) {
-        return  Arrays.asList(team).indexOf(team);
+        return  Arrays.asList(teams).indexOf(team);
     }
     public int wins(String team) {
         return w[teamIndex(team)];
@@ -63,6 +63,18 @@ public class BaseballElimination {
     }
     // public          boolean isEliminated(String team)              // is given team eliminated?
     // public Iterable<String> certificateOfElimination(String team)  // subset R of teams that eliminates given team; null if not eliminated
+    private String currentWinningTeam() {
+        int indexOfLargest = 0;
+        for (int i = 1; i < w.length; i++) {
+            if (w[i] > w[indexOfLargest]) {
+                indexOfLargest = i;
+            }
+        }
+        return teams[indexOfLargest];
+    }
+    private boolean isTrivallyEliminated(String team) {
+        return wins(team) + remaining(team) < wins(currentWinningTeam());
+    }
 
     public static void main(String[] args) {
         BaseballElimination be = new BaseballElimination("/Users/nlu/Downloads/baseball/teams4.txt");
