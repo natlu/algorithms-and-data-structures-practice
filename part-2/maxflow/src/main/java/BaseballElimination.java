@@ -1,10 +1,12 @@
 import edu.princeton.cs.algs4.In;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BaseballElimination {
 
+    private int numberOfTeams;
     private String[] team;
     private int[] w;
     private int[] l;
@@ -14,7 +16,7 @@ public class BaseballElimination {
     public BaseballElimination(String filename) {
         In input = new In(filename);
 
-        int numberOfTeams = Integer.parseInt(input.readLine());
+        numberOfTeams = Integer.parseInt(input.readLine());
         team = new String[numberOfTeams];
         w = new int[numberOfTeams];
         l = new int[numberOfTeams];
@@ -37,21 +39,28 @@ public class BaseballElimination {
             }
             i += 1;
         }
-//        for (int n = 0; n < numberOfTeams; n++) {
-//            for (int m = 0; m < numberOfTeams; m++) {
-//                System.out.printf(Integer.toString(g[n][m]));
-//            }
-//            System.out.println("-----");
-//        }
-
     }
-
-    // public              int numberOfTeams()                        // number of teams
-    // public Iterable<String> teams()                                // all teams
-    // public              int wins(String team)                      // number of wins for given team
-    // public              int losses(String team)                    // number of losses for given team
-    // public              int remaining(String team)                 // number of remaining games for given team
-    // public              int against(String team1, String team2)    // number of remaining games between team1 and team2
+    public int numberOfTeams() {
+        return numberOfTeams;
+    }
+    public Iterable<String> teams() {
+        return Arrays.asList(team);
+    }
+    private int teamIndex(String team) {
+        return  Arrays.asList(team).indexOf(team);
+    }
+    public int wins(String team) {
+        return w[teamIndex(team)];
+    }
+    public int losses(String team) {
+        return l[teamIndex(team)];
+    }
+    public int remaining(String team) {
+        return r[teamIndex(team)];
+    }
+    public int against(String team1, String team2) {
+        return g[teamIndex(team1)][teamIndex(team2)];
+    }
     // public          boolean isEliminated(String team)              // is given team eliminated?
     // public Iterable<String> certificateOfElimination(String team)  // subset R of teams that eliminates given team; null if not eliminated
 
