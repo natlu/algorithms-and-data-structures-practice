@@ -72,7 +72,7 @@ public class BaseballElimination {
         }
         return teams[indexOfLargest];
     }
-    private boolean isTrivallyEliminated(String team) {
+    private boolean isTriviallyEliminated(String team) {
         return wins(team) + remaining(team) < wins(currentWinningTeam());
     }
 
@@ -80,3 +80,4 @@ public class BaseballElimination {
         BaseballElimination be = new BaseballElimination("/Users/nlu/Downloads/baseball/teams4.txt");
     }
 }
+
