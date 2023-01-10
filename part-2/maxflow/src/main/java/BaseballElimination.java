@@ -1,8 +1,12 @@
+import edu.princeton.cs.algs4.FlowEdge;
+import edu.princeton.cs.algs4.FlowNetwork;
 import edu.princeton.cs.algs4.In;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.Flow;
 
 public class BaseballElimination {
 
@@ -76,8 +80,90 @@ public class BaseballElimination {
         return wins(team) + remaining(team) < wins(currentWinningTeam());
     }
 
+    private FlowNetwork createFlowNetwork(String team) {
+        int teamIndex = teamIndex(team);
+        int teamPotential = wins(team) + remaining(team);
+        int numberOfTeamsWithGames = numberOfTeamsWithGames(teamIndex);
+        int numberOfVertices = 2 + numberOfMatchUps(teamIndex) + numberOfTeamsWithGames;
+        FlowNetwork flowNetwork = new FlowNetwork(numberOfVertices);
+
+        int sourceNode = teamIndex;
+        int targetNode = numberOfTeamsWithGames + 1;
+        int numberOfMatchUps = 0;
+
+        System.out.println("--------");
+        System.out.println(sourceNode);
+        System.out.println(targetNode);
+        System.out.println("--------");
+
+        boolean[] teamHasMatch = new boolean[numberOfTeams];
+
+        for (int team1Index = 0; team1Index < numberOfTeams; team1Index++) {
+            if (team1Index == teamIndex) continue;
+            for (int team2Index = team1Index + 1; team2Index < numberOfTeams; team2Index++) {
+                if (team2Index == teamIndex) continue;
+                double capacity = g[team1Index][team2Index];
+                if (capacity > 0) {
+                    int matchUpNode = targetNode + numberOfMatchUps + 1;
+//                    flowNetwork.addEdge(new FlowEdge(sourceNode, matchUpNode, capacity));
+                    System.out.println(sourceNode + "-(" + capacity + ")->" + matchUpNode);
+//                    flowNetwork.addEdge(new FlowEdge(matchUpNode, team1Index, Double.POSITIVE_INFINITY));
+                    System.out.println(matchUpNode + "-(oo)->" + team1Index);
+//                    flowNetwork.addEdge(new FlowEdge(matchUpNode, team2Index, Double.POSITIVE_INFINITY));
+                    System.out.println(matchUpNode + "-(oo)->" + team2Index);
+
+                    if (!teamHasMatch[team1Index]) {
+//                        flowNetwork.addEdge(new FlowEdge(team1Index, targetNode, teamPotential - w[team1Index]));
+                        double c1 = teamPotential - w[team1Index];
+                        System.out.println(team1Index + "-(" + c1 + ")->" + targetNode);
+                    }
+                    if (!teamHasMatch[team2Index]) {
+//                        flowNetwork.addEdge(new FlowEdge(team2Index, targetNode, teamPotential - w[team2Index]));
+                        double c2 = teamPotential - w[team2Index];
+                        System.out.println(team2Index + "-(" + c2 + ")->" + targetNode);
+                    }
+                    teamHasMatch[team1Index] = true;
+                    teamHasMatch[team2Index] = true;
+                    numberOfMatchUps++;
+                }
+            }
+        }
+
+        return flowNetwork;
+    }
+
+    private int numberOfTeamsWithGames(int teamIndex) {
+        int count = 0;
+        for (int i = 0; i < numberOfTeams; i++) {
+            if (i == teamIndex) continue;
+            for (int j = 0; j < numberOfTeams; j++) {
+                if (j == teamIndex) continue;
+                if (g[i][j] > 0) {
+                    count++;
+                    break;
+                }
+            }
+        }
+        return count;
+    }
+
+    private int numberOfMatchUps(int teamIndex) {
+        int count = 0;
+        for (int i = 0; i < numberOfTeams; i++) {
+            if (i == teamIndex) continue;
+            for (int j = i + 1; j < numberOfTeams; j++) {
+                if (j == teamIndex) continue;
+                if (g[i][j] > 0) count++;
+            }
+        }
+        return count;
+    }
+
     public static void main(String[] args) {
         BaseballElimination be = new BaseballElimination("/Users/nlu/Downloads/baseball/teams4.txt");
+        FlowNetwork fn = be.createFlowNetwork("Philadelphia");
+//        System.out.println(fn.toString());
+
     }
 }
 
