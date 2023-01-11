@@ -1,21 +1,24 @@
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.FlowEdge;
+import edu.princeton.cs.algs4.FlowNetwork;
+import edu.princeton.cs.algs4.FordFulkerson;
+import edu.princeton.cs.algs4.In;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.Flow;
+
 
 public class BaseballElimination {
 
-    private int numberOfTeams;
-    private String[] teams;
-    private int[] w;
-    private int[] l;
-    private int[] r;
-    private int[][] g;
+    private final int numberOfTeams;
+    private final String[] teams;
+    private final int[] w;
+    private final int[] l;
+    private final int[] r;
+    private final int[][] g;
     private int sourceNode;
     private int targetNode;
+
+    private FordFulkerson fordFulkerson;
 
     public BaseballElimination(String filename) {
         In input = new In(filename);
@@ -33,6 +36,7 @@ public class BaseballElimination {
             if (line.isBlank()) {
                 break;
             }
+            line = line.strip();
             String[] fields = line.split("\\s+");
             teams[i] = fields[0];
             w[i] = Integer.parseInt(fields[1]);
@@ -68,7 +72,7 @@ public class BaseballElimination {
      public boolean isEliminated(String team) { // is given team eliminated?
         if (isTriviallyEliminated(team)) return true;
         FlowNetwork fn = createFlowNetwork(team);
-        FordFulkerson ff = new FordFulkerson(fn, sourceNode, targetNode);
+        fordFulkerson = new FordFulkerson(fn, sourceNode, targetNode);
 
          for (FlowEdge e : fn.adj(sourceNode)) {
              if (e.flow() < e.capacity()) return true;
@@ -76,7 +80,22 @@ public class BaseballElimination {
 
          return false;
      }
-    // public Iterable<String> certificateOfElimination(String team)  // subset R of teams that eliminates given team; null if not eliminated
+
+    public Iterable<String> certificateOfElimination(String team) { // subset R of teams that eliminates given team; null if not eliminated
+        if (!isEliminated(team)) return null;
+
+        ArrayList<String> teamSubset = new ArrayList<>();
+
+        for (int v = 0; v < numberOfTeams; v++) {
+            if (v == sourceNode) continue;
+            if (fordFulkerson.inCut(v)) {
+                teamSubset.add(teams[v]);
+            }
+        }
+
+        return teamSubset;
+    }
+
     private String currentWinningTeam() {
         int indexOfLargest = 0;
         for (int i = 1; i < w.length; i++) {
@@ -177,26 +196,26 @@ public class BaseballElimination {
 
 
     public static void main(String[] args) {
-        BaseballElimination be = new BaseballElimination("/Users/nlu/Downloads/baseball/teams4.txt");
-        FlowNetwork fn = be.createFlowNetwork("Philadelphia");
+        BaseballElimination be = new BaseballElimination("/Users/nlu/Downloads/baseball/teams10.txt");
+        FlowNetwork fn = be.createFlowNetwork("Atlanta");
         System.out.println(fn.toString());
-//        FordFulkerson ff = be.Foo("Philadelphia");
-//        System.out.println(ff.value());
-
-//        FordFulkerson ff = be.Bar(fn);
-
-//        for (FlowEdge e : fn.adj(be.sourceNode)) {
-//            System.out.println(e.flow());
-//            System.out.println(e.capacity());
+//
+//        System.out.println(be.isEliminated("Philadelphia"));
+//
+//        Iterable<String> subset = be.certificateOfElimination("Philadelphia");
+//        for (String s: subset) {
+//            System.out.println(s);
 //        }
 
-        // compute maximum flow and minimum cut
-//        for (int v = 0; v < fn.V(); v++) {
-//            for (FlowEdge e : fn.adj(v)) {
-//                if ((v == e.from()) && e.flow() > 0)
-//                    System.out.println("   " + e);
-//            }
+//        String line = "    aasdf 3   34     2";
+//        String[] fields = line.split("\\s+");
+//        System.out.printf("---------");
+//        System.out.println(fields[0]);
+//        System.out.printf("---------");
+//        for (String f: fields) {
+//            System.out.println(f);
 //        }
+
 
     }
 }
