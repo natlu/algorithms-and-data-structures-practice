@@ -1,6 +1,4 @@
-import edu.princeton.cs.algs4.FlowEdge;
-import edu.princeton.cs.algs4.FlowNetwork;
-import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +14,8 @@ public class BaseballElimination {
     private int[] l;
     private int[] r;
     private int[][] g;
+    private int sourceNode;
+    private int targetNode;
 
     public BaseballElimination(String filename) {
         In input = new In(filename);
@@ -65,7 +65,17 @@ public class BaseballElimination {
     public int against(String team1, String team2) {
         return g[teamIndex(team1)][teamIndex(team2)];
     }
-    // public          boolean isEliminated(String team)              // is given team eliminated?
+     public boolean isEliminated(String team) { // is given team eliminated?
+        if (isTriviallyEliminated(team)) return true;
+        FlowNetwork fn = createFlowNetwork(team);
+        FordFulkerson ff = new FordFulkerson(fn, sourceNode, targetNode);
+
+         for (FlowEdge e : fn.adj(sourceNode)) {
+             if (e.flow() < e.capacity()) return true;
+         }
+
+         return false;
+     }
     // public Iterable<String> certificateOfElimination(String team)  // subset R of teams that eliminates given team; null if not eliminated
     private String currentWinningTeam() {
         int indexOfLargest = 0;
@@ -87,14 +97,9 @@ public class BaseballElimination {
         int numberOfVertices = 2 + numberOfMatchUps(teamIndex) + numberOfTeamsWithGames;
         FlowNetwork flowNetwork = new FlowNetwork(numberOfVertices);
 
-        int sourceNode = teamIndex;
-        int targetNode = numberOfTeamsWithGames + 1;
+        sourceNode = teamIndex;
+        targetNode = numberOfTeamsWithGames + 1;
         int numberOfMatchUps = 0;
-
-        System.out.println("--------");
-        System.out.println(sourceNode);
-        System.out.println(targetNode);
-        System.out.println("--------");
 
         boolean[] teamHasMatch = new boolean[numberOfTeams];
 
@@ -105,22 +110,22 @@ public class BaseballElimination {
                 double capacity = g[team1Index][team2Index];
                 if (capacity > 0) {
                     int matchUpNode = targetNode + numberOfMatchUps + 1;
-//                    flowNetwork.addEdge(new FlowEdge(sourceNode, matchUpNode, capacity));
-                    System.out.println(sourceNode + "-(" + capacity + ")->" + matchUpNode);
-//                    flowNetwork.addEdge(new FlowEdge(matchUpNode, team1Index, Double.POSITIVE_INFINITY));
-                    System.out.println(matchUpNode + "-(oo)->" + team1Index);
-//                    flowNetwork.addEdge(new FlowEdge(matchUpNode, team2Index, Double.POSITIVE_INFINITY));
-                    System.out.println(matchUpNode + "-(oo)->" + team2Index);
+                    flowNetwork.addEdge(new FlowEdge(sourceNode, matchUpNode, capacity));
+//                    System.out.println(sourceNode + "-(" + capacity + ")->" + matchUpNode);
+                    flowNetwork.addEdge(new FlowEdge(matchUpNode, team1Index, Double.POSITIVE_INFINITY));
+//                    System.out.println(matchUpNode + "-(oo)->" + team1Index);
+                    flowNetwork.addEdge(new FlowEdge(matchUpNode, team2Index, Double.POSITIVE_INFINITY));
+//                    System.out.println(matchUpNode + "-(oo)->" + team2Index);
 
                     if (!teamHasMatch[team1Index]) {
-//                        flowNetwork.addEdge(new FlowEdge(team1Index, targetNode, teamPotential - w[team1Index]));
-                        double c1 = teamPotential - w[team1Index];
-                        System.out.println(team1Index + "-(" + c1 + ")->" + targetNode);
+                        flowNetwork.addEdge(new FlowEdge(team1Index, targetNode, teamPotential - w[team1Index]));
+//                        double c1 = teamPotential - w[team1Index];
+//                        System.out.println(team1Index + "-(" + c1 + ")->" + targetNode);
                     }
                     if (!teamHasMatch[team2Index]) {
-//                        flowNetwork.addEdge(new FlowEdge(team2Index, targetNode, teamPotential - w[team2Index]));
-                        double c2 = teamPotential - w[team2Index];
-                        System.out.println(team2Index + "-(" + c2 + ")->" + targetNode);
+                        flowNetwork.addEdge(new FlowEdge(team2Index, targetNode, teamPotential - w[team2Index]));
+//                        double c2 = teamPotential - w[team2Index];
+//                        System.out.println(team2Index + "-(" + c2 + ")->" + targetNode);
                     }
                     teamHasMatch[team1Index] = true;
                     teamHasMatch[team2Index] = true;
@@ -159,10 +164,39 @@ public class BaseballElimination {
         return count;
     }
 
+//    public FordFulkerson Foo(String team) { // is given team eliminated?
+//        FlowNetwork fn = createFlowNetwork(team);
+//        FordFulkerson ff = new FordFulkerson(fn, sourceNode, targetNode);
+//        return ff;
+//    }
+//
+//    public FordFulkerson Bar(FlowNetwork fn) { // is given team eliminated?
+//        FordFulkerson ff = new FordFulkerson(fn, sourceNode, targetNode);
+//        return ff;
+//    }
+
+
     public static void main(String[] args) {
         BaseballElimination be = new BaseballElimination("/Users/nlu/Downloads/baseball/teams4.txt");
         FlowNetwork fn = be.createFlowNetwork("Philadelphia");
-//        System.out.println(fn.toString());
+        System.out.println(fn.toString());
+//        FordFulkerson ff = be.Foo("Philadelphia");
+//        System.out.println(ff.value());
+
+//        FordFulkerson ff = be.Bar(fn);
+
+//        for (FlowEdge e : fn.adj(be.sourceNode)) {
+//            System.out.println(e.flow());
+//            System.out.println(e.capacity());
+//        }
+
+        // compute maximum flow and minimum cut
+//        for (int v = 0; v < fn.V(); v++) {
+//            for (FlowEdge e : fn.adj(v)) {
+//                if ((v == e.from()) && e.flow() > 0)
+//                    System.out.println("   " + e);
+//            }
+//        }
 
     }
 }
