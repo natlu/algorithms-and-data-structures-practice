@@ -1,9 +1,11 @@
-import edu.princeton.cs.algs4.*;
+
+import edu.princeton.cs.algs4.FlowEdge;
+import edu.princeton.cs.algs4.FlowNetwork;
+import edu.princeton.cs.algs4.FordFulkerson;
+import edu.princeton.cs.algs4.In;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
 
 
 public class BaseballElimination {
@@ -16,12 +18,11 @@ public class BaseballElimination {
     private final int[][] g;
     private int sourceNode;
     private int targetNode;
-    private HashSet<Integer> teamsWithGamesIndex;
+    private ArrayList<String> teamsWithGames;
 
     private FordFulkerson fordFulkerson;
 
     public BaseballElimination(String filename) {
-        System.out.println("creating BaseballElimination");
         In input = new In(filename);
 
         numberOfTeams = Integer.parseInt(input.readLine());
@@ -48,7 +49,6 @@ public class BaseballElimination {
             }
             i += 1;
         }
-        System.out.println("created BaseballElimination");
     }
     public int numberOfTeams() {
         return numberOfTeams;
@@ -60,9 +60,7 @@ public class BaseballElimination {
         return Arrays.asList(teams).indexOf(team);
     }
     private boolean teamExists(String team) {
-//        System.out.println("searching for " + team);
         for (String t : teams) {
-//            System.out.println("team" + t);
             if (t.equals(team)) return true;
         }
         return false;
@@ -90,15 +88,11 @@ public class BaseballElimination {
     }
      public boolean isEliminated(String team) { // is given team eliminated?
          validateTeam(team);
-         System.out.println("checking if trivially eliminated");
          if (isTriviallyEliminated(team)) return true;
 
-         System.out.println("creating flow network");
          FlowNetwork fn = createFlowNetwork(team);
-         System.out.println("creating ford fulkerson");
          fordFulkerson = new FordFulkerson(fn, sourceNode, targetNode);
 
-         System.out.println("checking if eliminated");
           for (FlowEdge e : fn.adj(sourceNode)) {
               if (e.flow() < e.capacity()) return true;
           }
@@ -112,10 +106,18 @@ public class BaseballElimination {
 
         ArrayList<String> teamSubset = new ArrayList<>();
 
-        for (int v = 0; v < numberOfTeams; v++) {
-            if (v == sourceNode) continue;
-            if (fordFulkerson.inCut(v)) {
-                teamSubset.add(teams[v]);
+        int teamPotential = wins(team) + remaining(team);
+        if (isTriviallyEliminated(team)) {
+            for (String otherTeam: teams) {
+                if (otherTeam.equals(team)) continue;
+                if (wins(otherTeam) > teamPotential) teamSubset.add(otherTeam);
+            }
+            return teamSubset;
+        } else {
+            for (int i = 0; i < teamsWithGames.size(); i++) {
+                if (fordFulkerson.inCut(i)) {
+                    teamSubset.add(teamsWithGames.get(i));
+                }
             }
         }
 
@@ -136,61 +138,54 @@ public class BaseballElimination {
     }
 
     private FlowNetwork createFlowNetwork(String team) {
-        System.out.println("invoked createFlowNetwork");
         int teamIndex = teamIndex(team);
         int teamPotential = wins(team) + remaining(team);
         int numberOfTeamsWithGames = numberOfTeamsWithGames(teamIndex);
         int numberOfVertices = 2 + numberOfMatchUps(teamIndex) + numberOfTeamsWithGames;
         FlowNetwork flowNetwork = new FlowNetwork(numberOfVertices);
 
-        sourceNode = teamIndex;
-//        int numberOfMatchUps = 0;
 
         boolean[] teamHasMatch = new boolean[numberOfTeams];
 
-        LinkedList<Integer> availableNodes = new LinkedList<>();
-        for (int i = 0; i < numberOfVertices; i++) {
-            if (i == sourceNode) continue;
-            if (teamsWithGamesIndex.contains(i)) continue;
-            availableNodes.add(i);
-            System.out.println("availableNodes: " + i);
-        }
+        sourceNode = numberOfTeamsWithGames;
+        targetNode = numberOfTeamsWithGames + 1;
 
-        targetNode = availableNodes.pop();
+//        System.out.println("numberOfTeamsWithGames: " + numberOfTeamsWithGames);
+//        System.out.println("numberOfVertices: " + numberOfVertices);
+//        System.out.println("numberOfMatchUps: " + numberOfMatchUps(teamIndex));
+//        System.out.println("sourceNode: " + sourceNode);
+//        System.out.println("targetNode: " + targetNode);
 
-        System.out.println("numberOfTeamsWithGames: " + numberOfTeamsWithGames);
-        System.out.println("numberOfVertices: " + numberOfVertices);
-        System.out.println("sourceNode: " + sourceNode);
-        System.out.println("targetNode: " + targetNode);
 
-        for (int team1Index = 0; team1Index < numberOfTeams; team1Index++) {
-            if (team1Index == teamIndex) continue;
-            for (int team2Index = team1Index + 1; team2Index < numberOfTeams; team2Index++) {
-                if (team2Index == teamIndex) continue;
-                double capacity = g[team1Index][team2Index];
+        int numberOfMatchUps = targetNode;
+        for (int i = 0; i < numberOfTeamsWithGames; i++) {
+            String teamI = teamsWithGames.get(i);
+            for (int j = i + 1; j < numberOfTeamsWithGames; j++) {
+                String teamJ = teamsWithGames.get(j);
+                double capacity = g[teamIndex(teamI)][teamIndex(teamJ)];
                 if (capacity > 0) {
-//                    int matchUpNode = targetNode + numberOfMatchUps + 1;
-                    int matchUpNode = availableNodes.pop();
+                    numberOfMatchUps++;
+                    int matchUpNode = numberOfMatchUps;
+//                    System.out.println("game node: " + matchUpNode);
+//                    System.out.println(sourceNode + "-(" + capacity + ")->" + matchUpNode);
                     flowNetwork.addEdge(new FlowEdge(sourceNode, matchUpNode, capacity));
-                    System.out.println(sourceNode + "-(" + capacity + ")->" + matchUpNode);
-                    flowNetwork.addEdge(new FlowEdge(matchUpNode, team1Index, Double.POSITIVE_INFINITY));
-                    System.out.println(matchUpNode + "-(oo)->" + team1Index);
-                    flowNetwork.addEdge(new FlowEdge(matchUpNode, team2Index, Double.POSITIVE_INFINITY));
-                    System.out.println(matchUpNode + "-(oo)->" + team2Index);
+//                    System.out.println(matchUpNode + "-(oo)->" + i);
+                    flowNetwork.addEdge(new FlowEdge(matchUpNode, i, Double.POSITIVE_INFINITY));
+//                    System.out.println(matchUpNode + "-(oo)->" + j);
+                    flowNetwork.addEdge(new FlowEdge(matchUpNode, j, Double.POSITIVE_INFINITY));
 
-                    if (!teamHasMatch[team1Index]) {
-                        flowNetwork.addEdge(new FlowEdge(team1Index, targetNode, teamPotential - w[team1Index]));
-                        double c1 = teamPotential - w[team1Index];
-                        System.out.println(team1Index + "-(" + c1 + ")->" + targetNode);
+                    if (!teamHasMatch[i]) {
+//                        double c1 = teamPotential - w[teamIndex(teamI)];
+//                        System.out.println(i + "-(" + c1 + ")->" + targetNode);
+                        flowNetwork.addEdge(new FlowEdge(i, targetNode, teamPotential - w[teamIndex(teamI)]));
                     }
-                    if (!teamHasMatch[team2Index]) {
-                        flowNetwork.addEdge(new FlowEdge(team2Index, targetNode, teamPotential - w[team2Index]));
-                        double c2 = teamPotential - w[team2Index];
-                        System.out.println(team2Index + "-(" + c2 + ")->" + targetNode);
+                    if (!teamHasMatch[j]) {
+//                        double c2 = teamPotential - w[teamIndex(teamJ)];
+//                        System.out.println(j + "-(" + c2 + ")->" + targetNode);
+                        flowNetwork.addEdge(new FlowEdge(j, targetNode, teamPotential - w[teamIndex(teamJ)]));
                     }
-                    teamHasMatch[team1Index] = true;
-                    teamHasMatch[team2Index] = true;
-//                    numberOfMatchUps++;
+                    teamHasMatch[i] = true;
+                    teamHasMatch[j] = true;
                 }
             }
         }
@@ -198,24 +193,24 @@ public class BaseballElimination {
         return flowNetwork;
     }
 
-    private HashSet<Integer> teamsWithGames(int teamIndex) {
-        teamsWithGamesIndex = new HashSet<>();
+    private ArrayList<String> teamsWithGames(int teamIndex) {
+        teamsWithGames = new ArrayList<>();
         for (int i = 0; i < numberOfTeams; i++) {
             if (i == teamIndex) continue;
             for (int j = 0; j < numberOfTeams; j++) {
                 if (j == teamIndex) continue;
                 if (g[i][j] > 0) {
-                    teamsWithGamesIndex.add(i);
+                    teamsWithGames.add(teams[i]);
                     break;
                 }
             }
         }
-        return teamsWithGamesIndex;
+        return teamsWithGames;
     }
 
     private int numberOfTeamsWithGames(int teamIndex) {
-        teamsWithGamesIndex = teamsWithGames(teamIndex);
-        return teamsWithGamesIndex.size();
+        teamsWithGames = teamsWithGames(teamIndex);
+        return teamsWithGames.size();
 //        int count = 0;
 //        for (int i = 0; i < numberOfTeams; i++) {
 //            if (i == teamIndex) continue;
@@ -242,58 +237,42 @@ public class BaseballElimination {
         return count;
     }
 
-//    public FordFulkerson Foo(String team) { // is given team eliminated?
-//        FlowNetwork fn = createFlowNetwork(team);
-//        FordFulkerson ff = new FordFulkerson(fn, sourceNode, targetNode);
-//        return ff;
-//    }
-//
-//    public FordFulkerson Bar(FlowNetwork fn) { // is given team eliminated?
-//        FordFulkerson ff = new FordFulkerson(fn, sourceNode, targetNode);
-//        return ff;
-//    }
-
-
     public static void main(String[] args) {
-        System.out.println("main 1 ---------------------------");
-        BaseballElimination be = new BaseballElimination("/Users/nlu/Downloads/baseball/teams4a.txt");
-        System.out.println("main 2 ---------------------------");
-        String selectedTeam = "Ghaddafi";
-        System.out.println("main 3 ---------------------------");
-        FlowNetwork fn = be.createFlowNetwork(selectedTeam);
-        System.out.println("main 4 ---------------------------");
-        System.out.println(fn.toString());
-        System.out.println("main 5 ---------------------------");
-
-        if (be.isEliminated(selectedTeam)) {
-            System.out.println("is eliminated");
-        } else {
-            System.out.println("not eliminated");
+        String file = "/Users/nlu/Downloads/baseball/teams4b.txt";
+        In input = new In(file);
+        int n = Integer.parseInt(input.readLine());
+        String[] teams = new String[n];
+        int i = 0;
+        while (input.hasNextLine()) {
+            String line = input.readLine();
+            if (line.isBlank()) {
+                break;
+            }
+            line = line.strip();
+            String[] fields = line.split("\\s+");
+            teams[i] = fields[0];
+            i += 1;
         }
-//
-//        System.out.println(be.isEliminated("Philadelphia"));
-//
-//        Iterable<String> subset = be.certificateOfElimination("Philadelphia");
-//        for (String s: subset) {
-//            System.out.println(s);
-//        }
 
-//        String line = "    aasdf 3   34     2";
-//        String[] fields = line.split("\\s+");
-//        System.out.printf("---------");
-//        System.out.println(fields[0]);
-//        System.out.printf("---------");
-//        for (String f: fields) {
-//            System.out.println(f);
-//        }
+        BaseballElimination be = new BaseballElimination(file);
 
-//        LinkedList<Integer> availableNodes = new LinkedList<>();
-//        availableNodes.add(1);
-//        availableNodes.add(2);
-//        System.out.println(availableNodes.size());
-//        availableNodes.pop();
-//        System.out.println(availableNodes.size());
+//        FlowNetwork fn = be.createFlowNetwork("Princeton");
 
+        for (String team : teams) {
+            System.out.println("team: " + team);
+//            FlowNetwork fn = be.createFlowNetwork(team);
+//            System.out.println(fn.toString());
+
+            System.out.println("check elimination");
+            if (be.isEliminated(team)) {
+                System.out.println("is eliminated");
+                for (String t : be.certificateOfElimination(team)) {
+                    System.out.println(t);
+                }
+            } else {
+                System.out.println("not eliminated");
+            }
+        }
 
     }
 }
