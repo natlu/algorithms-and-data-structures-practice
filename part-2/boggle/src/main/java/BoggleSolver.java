@@ -1,6 +1,7 @@
 import com.sun.jdi.Value;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class BoggleSolver {
@@ -116,15 +117,15 @@ public class BoggleSolver {
 
     private class BoggleDFS {
         private BoggleBoard board;
-        private List<String> validWords;
+        private HashSet<String> validWords;
         private boolean[][] visited;
 
         public BoggleDFS(BoggleBoard board) {
             this.board = board;
-            validWords = new ArrayList<>();
+            validWords = new HashSet<>();
         }
 
-        public List<String> getAllWords() {
+        public HashSet<String> getAllWords() {
             for (int i = 0; i < board.rows(); i++) {
                 for (int j = 0; j < board.cols(); j++) {
                     getAllWordsStartingFromTile(i, j);
@@ -179,17 +180,17 @@ public class BoggleSolver {
         BoggleBoard bb = new BoggleBoard(foo);
 //        System.out.println(bb.toString());
 
-       BoggleDFS bfs = bs.getBoggleDFS(bb);
-       bfs.getAllWordsStartingFromTile(1, 1);
-       Iterable<String> bar = bfs.validWords;
-        for (String word : bar) {
-            System.out.println(word);
-        }
-
-//        Iterable<String> words = bs.getAllValidWords(bb);
-//        for (String word : words) {
+//       BoggleDFS bfs = bs.getBoggleDFS(bb);
+//       bfs.getAllWordsStartingFromTile(1, 1);
+//       Iterable<String> bar = bfs.validWords;
+//        for (String word : bar) {
 //            System.out.println(word);
 //        }
+
+        Iterable<String> words = bs.getAllValidWords(bb);
+        for (String word : words) {
+            System.out.println(word);
+        }
 
     }
 
