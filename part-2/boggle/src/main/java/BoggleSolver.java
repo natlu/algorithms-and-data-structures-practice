@@ -1,6 +1,3 @@
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.StdOut;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,15 +19,15 @@ public class BoggleSolver {
             root = put(root, key, 0);
         }
 
-        private Node put(Node node, String key, int character_index) {
+        private Node put(Node node, String key, int characterIndex) {
             if (node == null) node = new Node();
-            if (character_index == key.length()) {
+            if (characterIndex == key.length()) {
                 node.wordEnd = true;
                 return node;
             }
-            char c = key.charAt(character_index);
+            char c = key.charAt(characterIndex);
             int pos = c - 'A';
-            node.next[pos] = put(node.next[pos], key, character_index + 1);
+            node.next[pos] = put(node.next[pos], key, characterIndex + 1);
             return node;
         }
 
@@ -38,15 +35,15 @@ public class BoggleSolver {
             return contains(root, key, 0);
         }
 
-        public boolean contains(Node node, String key, int character_index) {
+        public boolean contains(Node node, String key, int characterIndex) {
             if (node == null) return false;
-            if (character_index == key.length()) {
+            if (characterIndex == key.length()) {
                 if (node.wordEnd) return true;
                 return false;
             }
-            char c = key.charAt(character_index);
+            char c = key.charAt(characterIndex);
             int pos = c - 'A';
-            return contains(node.next[pos], key, character_index + 1);
+            return contains(node.next[pos], key, characterIndex + 1);
         }
 
         public boolean isPrefix(String prefix) {
@@ -54,12 +51,12 @@ public class BoggleSolver {
 
         }
 
-        public boolean isPrefix(Node node, String prefix, int character_index) {
+        public boolean isPrefix(Node node, String prefix, int characterIndex) {
             if (node == null) return false;
-            if (character_index == prefix.length()) return true;
-            char c = prefix.charAt(character_index);
+            if (characterIndex == prefix.length()) return true;
+            char c = prefix.charAt(characterIndex);
             int pos = c - 'A';
-            return isPrefix(node.next[pos], prefix, character_index + 1);
+            return isPrefix(node.next[pos], prefix, characterIndex + 1);
         }
 
     }
@@ -112,10 +109,6 @@ public class BoggleSolver {
     public Iterable<String> getAllValidWords(BoggleBoard board) {
         BoggleDFS boggleDFS = new BoggleDFS(board);
         return boggleDFS.getAllWords();
-    }
-
-    private BoggleDFS getBoggleDFS(BoggleBoard board) {
-        return new BoggleDFS(board);
     }
 
     private class BoggleDFS {
@@ -192,8 +185,8 @@ public class BoggleSolver {
      }
 
 
-    public static void main(String[] args) {
-    }
+//    public static void main(String[] args) {
+//    }
 
 }
 
