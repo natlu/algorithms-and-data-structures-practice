@@ -1,18 +1,19 @@
-import com.sun.jdi.Value;
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdOut;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
 public class BoggleSolver {
-    static final int MIN_WORD_LEN = 3;
-    Trie dictionaryTrie;
+    private static final int MIN_WORD_LEN = 3;
+    private final Trie dictionaryTrie;
 
     private class Trie {
-        static final int R = 26;
+        private static final int R = 26;
         private Node root = new Node();
 
-        private static class Node {
+        private class Node {
             private boolean wordEnd = false;
             private Node[] next = new Node[R];
         }
@@ -39,8 +40,10 @@ public class BoggleSolver {
 
         public boolean contains(Node node, String key, int character_index) {
             if (node == null) return false;
-            if (node.wordEnd) return true;
-            if (character_index == key.length()) return false; // must be after checking wordEnd
+            if (character_index == key.length()) {
+                if (node.wordEnd) return true;
+                return false;
+            }
             char c = key.charAt(character_index);
             int pos = c - 'A';
             return contains(node.next[pos], key, character_index + 1);
@@ -111,14 +114,15 @@ public class BoggleSolver {
         return boggleDFS.getAllWords();
     }
 
-    public BoggleDFS getBoggleDFS(BoggleBoard board) {
+    private BoggleDFS getBoggleDFS(BoggleBoard board) {
         return new BoggleDFS(board);
     }
 
     private class BoggleDFS {
-        private BoggleBoard board;
-        private HashSet<String> validWords;
+        private final BoggleBoard board;
+        private final HashSet<String> validWords;
         private boolean[][] visited;
+        private boolean[][] qFlag;
 
         public BoggleDFS(BoggleBoard board) {
             this.board = board;
@@ -128,20 +132,37 @@ public class BoggleSolver {
         public HashSet<String> getAllWords() {
             for (int i = 0; i < board.rows(); i++) {
                 for (int j = 0; j < board.cols(); j++) {
-                    getAllWordsStartingFromTile(i, j);
+                    includeAllWordsStartingFromTile(i, j);
                 }
             }
             return validWords;
         }
 
-        public void getAllWordsStartingFromTile(int i, int j) {
+        public void includeAllWordsStartingFromTile(int i, int j) {
             visited = new boolean[board.rows()][board.cols()];
-            getAllWordsStartingFromTile(i, j, new StringBuilder());
+            qFlag = new boolean[board.rows()][board.cols()];
+            includeAllWordsStartingFromTile(i, j, new StringBuilder());
         }
 
-        public void getAllWordsStartingFromTile(int i, int j, StringBuilder word) {
+        private String getLetter(int i, int j) {
+            char letter = board.getLetter(i, j);
+            if (letter == 'Q') {
+                qFlag[i][j] = true;
+                return "QU";
+            }
+            return String.valueOf(letter);
+        }
+
+        private void deleteCharacters(StringBuilder word, int i, int j) {
+            word.deleteCharAt(word.length() - 1);
+            if (qFlag[i][j]) {
+                word.deleteCharAt(word.length() - 1);
+            }
+        }
+
+        public void includeAllWordsStartingFromTile(int i, int j, StringBuilder word) {
             visited[i][j] = true;
-            word.append(board.getLetter(i, j));
+            word.append(getLetter(i, j));
             if (dictionaryTrie.isPrefix(word.toString())) {
                 if (word.length() >= MIN_WORD_LEN && dictionaryTrie.contains(word.toString())) {
                     validWords.add(word.toString());
@@ -149,49 +170,29 @@ public class BoggleSolver {
                 List<TilePosition> adjacentTiles = getAdjacentTiles(board, i, j);
                 for (TilePosition adjacentTile : adjacentTiles) {
                     if (!visited[adjacentTile.i][adjacentTile.j]) {
-                        getAllWordsStartingFromTile(adjacentTile.i, adjacentTile.j, word);
+                        includeAllWordsStartingFromTile(adjacentTile.i, adjacentTile.j, word);
                     }
                 }
             }
-            word.deleteCharAt(word.length() - 1);
+            deleteCharacters(word, i, j);
             visited[i][j] = false;
         }
 
     }
 
 
-    // public int scoreOf(String word)
+    public int scoreOf(String word) {
+        if (!dictionaryTrie.contains(word)) return 0;
+        if (word.length() < 3) return 0;
+        if (word.length() <= 4) return 1;
+        if (word.length() == 5) return 2;
+        if (word.length() == 6) return 3;
+        if (word.length() == 7) return 5;
+        return 11;
+     }
 
 
     public static void main(String[] args) {
-
-        String[] dict = {"ONE", "FOUR", "FIVE", "SIX", "NINE"};
-        BoggleSolver bs = new BoggleSolver(dict);
-
-//        if (bs.dictionaryTrie.isPrefix("ONE")) {
-//            System.out.println("yes");
-//        }
-
-        char[][] foo =  {
-                { 'O', 'N', 'E' },
-                { 'Z', 'F', 'O' },
-                { 'X', 'R', 'U' }
-        };
-        BoggleBoard bb = new BoggleBoard(foo);
-//        System.out.println(bb.toString());
-
-//       BoggleDFS bfs = bs.getBoggleDFS(bb);
-//       bfs.getAllWordsStartingFromTile(1, 1);
-//       Iterable<String> bar = bfs.validWords;
-//        for (String word : bar) {
-//            System.out.println(word);
-//        }
-
-        Iterable<String> words = bs.getAllValidWords(bb);
-        for (String word : words) {
-            System.out.println(word);
-        }
-
     }
 
 }
