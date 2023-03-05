@@ -21,7 +21,6 @@ public class MoveToFront {
             char character = BinaryStdIn.readChar();
             int characterDecimalValue = (int) character;
             int characterPosition = characterSequence.indexOf(characterDecimalValue);
-//            System.out.println(characterPosition);
             characterSequence.remove(characterPosition);
             characterSequence.add(0, characterDecimalValue);
             BinaryStdOut.write((char) characterPosition);
@@ -31,18 +30,26 @@ public class MoveToFront {
 
     // apply move-to-front decoding, reading from standard input and writing to standard output
     public static void decode() {
-
+        List<Integer> characterSequence = new ArrayList<>(NUMBER_OF_LEGAL_CHARACTERS);
+        for (int i = 0; i < NUMBER_OF_LEGAL_CHARACTERS; i++) {
+            characterSequence.add(i);
+        }
+        while (!BinaryStdIn.isEmpty()) {
+            int characterPosition = (int) BinaryStdIn.readChar();
+            int characterDecimalValue = Integer.valueOf(characterSequence.get(characterPosition));
+            BinaryStdOut.write((char) characterDecimalValue);
+            characterSequence.remove(characterPosition);
+            characterSequence.add(0, characterDecimalValue);
+        }
+        BinaryStdOut.close();
     }
 
     // if args[0] is "-", apply move-to-front encoding
     // if args[0] is "+", apply move-to-front decoding
     public static void main(String[] args) {
-        encode();
-//        if      (args[0].equals("-")) compress();
-//        else if (args[0].equals("+")) expand();
-//        else throw new IllegalArgumentException("Illegal command line argument");
-
-//        System.out.println("heelo");
+        if      (args[0].equals("-")) encode();
+        else if (args[0].equals("+")) decode();
+        else throw new IllegalArgumentException("Illegal command line argument");
     }
 
 }
