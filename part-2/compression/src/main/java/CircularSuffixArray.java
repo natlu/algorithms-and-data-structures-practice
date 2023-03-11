@@ -5,56 +5,47 @@ public class CircularSuffixArray {
     private final String string;
     private final int[] index;
 
+    private class CircularSuffix implements Comparable<CircularSuffix> {
+        private String s;
+        private int index;
+
+        public CircularSuffix(String s, int index) {
+            this.s = s;
+            this.index = index;
+        }
+
+        @Override
+        public int compareTo(CircularSuffix other) {
+            for (int i = 0; i < s.length(); i++) {
+                char character = s.charAt((this.index + i) % s.length());
+                char otherCharacter = s.charAt((other.index + i) % s.length());
+                if (character > otherCharacter) return 1;
+                if (character < otherCharacter) return -1;
+            }
+            return 0;
+        }
+    }
+
     // circular suffix array of s
     public CircularSuffixArray(String s) {
         if (s == null) throw new IllegalArgumentException("String s must not be null");
-        this.string = s + '\0';
-        this.index = new int[this.string.length()];
-        for (int i = 0; i < this.string.length(); i++) this.index[i] = i;
-        sort(0, this.string.length() - 1, 0);
-//        Arrays.copyOfRange(index, 1, string.length());
-    }
-
-    private char characterAt(int stringStartIndex, int charIndex) {
-        int trueCharIndex = (index[stringStartIndex] + charIndex)%string.length();
-        return string.charAt(trueCharIndex);
-    }
-
-    private void sort(int startIndex, int endIndex, int charIndex) {
-        if (endIndex <= startIndex) return;
-
-        int lessThanMarker = startIndex;
-        int greaterThanMarker = endIndex;
-
-        char character = characterAt(startIndex, charIndex);
-        int i = startIndex + 1;
-        while (i <= greaterThanMarker) {
-            char otherCharacter = characterAt(i, charIndex);
-            if      (otherCharacter < character) exchange(lessThanMarker++, i++);
-            else if (otherCharacter > character) exchange(i, greaterThanMarker--);
-            else                                 i++;
-        }
-
-        sort(startIndex, lessThanMarker-1, charIndex);
-        if (character > 0) sort(lessThanMarker, greaterThanMarker, charIndex+1);
-        sort(greaterThanMarker+1, endIndex, charIndex);
-    }
-
-    private void exchange(int i, int j) {
-        int temp = index[i];
-        index[i] = index[j];
-        index[j] = temp;
+        this.string = s;
+        CircularSuffix[] circularSuffixes = new CircularSuffix[s.length()];
+        for (int i = 0; i < s.length(); i++) circularSuffixes[i] = new CircularSuffix(s, i);
+        Arrays.sort(circularSuffixes);
+        this.index = new int[s.length()];
+        for (int i = 0; i < s.length(); i++) index[i] = circularSuffixes[i].index;
     }
 
     // length of s
     public int length() {
-        return string.length() - 1;
+        return string.length();
     }
 
     // returns index of ith sorted suffix
     public int index(int i) {
-        if (i < 0 || i > length()) throw new IllegalArgumentException("i out of bounds");
-        return index[i+1];
+        if (i < 0 || i >= length()) throw new IllegalArgumentException("i out of bounds");
+        return index[i];
     }
 
     // unit testing (required)
