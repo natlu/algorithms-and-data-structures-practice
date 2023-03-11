@@ -7,6 +7,7 @@ public class CircularSuffixArray {
 
     // circular suffix array of s
     public CircularSuffixArray(String s) {
+        if (s == null) throw new IllegalArgumentException("String s must not be null");
         this.string = s + '\0';
         this.index = new int[this.string.length()];
         for (int i = 0; i < this.string.length(); i++) this.index[i] = i;
@@ -52,13 +53,14 @@ public class CircularSuffixArray {
 
     // returns index of ith sorted suffix
     public int index(int i) {
+        if (i < 0 || i > length()) throw new IllegalArgumentException("i out of bounds");
         return index[i+1];
     }
 
     // unit testing (required)
     public static void main(String[] args) {
 //        CircularSuffixArray circularSuffixArray = new CircularSuffixArray("helloworld");
-        CircularSuffixArray circularSuffixArray = new CircularSuffixArray("bdcca");
+        CircularSuffixArray circularSuffixArray = new CircularSuffixArray("BAB");
 
         int arrayLength = circularSuffixArray.length();
         System.out.println(arrayLength);
